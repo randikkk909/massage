@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -173,6 +173,7 @@
             transition: all var(--transition); box-shadow: 0 6px 20px rgba(176,137,104,0.25);
             position: relative; overflow: hidden;
         }
+        .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .primary-btn::after {
             content: ''; position: absolute; inset: 0;
             background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15)); pointer-events: none;
@@ -263,6 +264,11 @@
         .tag { display: inline-block; background: #ede3d6; padding: 3px 10px; border-radius: 16px; font-size: 10px; margin: 2px; color: #5e4e3e; }
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text2); }
         .empty-state svg { display: block; margin: 0 auto 12px; opacity: 0.5; }
+        .admin-section-title { font-weight: 600; font-size: 13px; color: #5e4e3e; margin: 14px 0 6px; }
+        .admin-appt-card { background: #fff; border-radius: 14px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid var(--border); font-size: 12px; }
+        .admin-appt-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+        .admin-appt-client { font-weight: 600; color: #5e4e3e; }
+        .admin-appt-meta { color: var(--text2); margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -272,8 +278,6 @@
 (function() {
     const API = 'https://tgweb.bebraila5990d.workers.dev';
     const BOT = 'MassageLobnya_bot';
-    const BOT_TOKEN = '8510549958:AAH3uG3B7sNOPOYPlpmiB0hX4ZZ8Uh5zYK4';
-    const ADMIN_IDS = ['8419348464', '5709727150'];
  
     const SERVICES = [
         { id: 'classic60', name: 'Классический массаж', duration: '60 мин', durationMin: 60 },
@@ -286,7 +290,8 @@
     function genSlots(){const s=[];for(let h=9;h<=21;h++)for(let m=0;m<60;m+=15){if(h===21&&m>0)break;s.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)}return s}
     const ALL_SLOTS=genSlots(),WORK_END=21*60;
  
-    let currentUser=null,appointments=[],reviews=[],blockedSlots=[],blockedDays=[];
+    let currentUser=null,reviews=[];
+    let myAppointments=[],occupied=[],blockedSlots=[],blockedDays=[],allAppointments=[],isAdminUser=false;
     let selService=null,selDate=null,selTime=null,reviewRating=0;
  
     (function init(){
@@ -298,13 +303,11 @@
                 currentUser=u;
                 localStorage.setItem('muser',JSON.stringify(u));
                 window.history.replaceState({},'',window.location.pathname);
-                loadData();
-                return;
             }catch(e){}
         }
         if(!currentUser){
             const s=localStorage.getItem('muser');
-            if(s){try{currentUser=JSON.parse(s);loadData();return}catch(e){}}
+            if(s){try{currentUser=JSON.parse(s)}catch(e){}}
         }
         if(currentUser){loadData();return}
         showAuth();
@@ -312,7 +315,7 @@
  
     function showAuth(){
         document.getElementById('appRoot').innerHTML=`
-            <div class="auth-container">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:24px 20px;gap:16px;text-align:center">
                 <div class="logo">massage <span>lobnya</span></div>
                 <p style="font-size:13px;color:var(--text2)">Войдите через Telegram</p>
                 <a class="tg-btn" href="https://t.me/${BOT}?start=web" target="_blank">
@@ -340,28 +343,43 @@
  
     function logout(){localStorage.removeItem('muser');currentUser=null;showAuth();}
  
-    function loadData(){
-        const k=currentUser.id;
-        appointments=JSON.parse(localStorage.getItem('a_'+k)||'[]');
-        blockedSlots=JSON.parse(localStorage.getItem('bs')||'[]');
-        blockedDays=JSON.parse(localStorage.getItem('bd')||'[]');
-        reviews=JSON.parse(localStorage.getItem('rv')||'[]');
-        renderApp();
+    async function fetchState(){
+        try{
+            const r=await fetch(API+'/state?userId='+encodeURIComponent(currentUser.id));
+            const d=await r.json();
+            if(d.ok){
+                myAppointments=d.myAppointments||[];
+                occupied=d.occupied||[];
+                blockedSlots=d.blockedSlots||[];
+                blockedDays=d.blockedDays||[];
+                isAdminUser=!!d.isAdmin;
+                allAppointments=d.allAppointments||[];
+            }
+        }catch(e){}
     }
  
-    function saveData(){
-        if(!currentUser)return;
-        localStorage.setItem('a_'+currentUser.id,JSON.stringify(appointments));
-        localStorage.setItem('bs',JSON.stringify(blockedSlots));
-        localStorage.setItem('bd',JSON.stringify(blockedDays));
-        localStorage.setItem('rv',JSON.stringify(reviews));
+    function loadData(){
+        reviews=JSON.parse(localStorage.getItem('rv')||'[]');
+        fetchState().then(renderApp);
     }
+ 
+    async function refreshAndRerender(){
+        await fetchState();
+        renderDates();renderSlots();renderAppointments();updateSummary();
+        if(document.getElementById('admPn')&&document.getElementById('admPn').style.display==='block'){
+            renderAdminPanelContent();
+        }
+        const admBtn=document.getElementById('admTg');
+        if(admBtn) admBtn.style.display = isAdminUser ? 'block' : 'none';
+    }
+ 
+    function saveReviews(){ localStorage.setItem('rv',JSON.stringify(reviews)); }
  
     function getDates(){const d=[],n=new Date();let s=(n.getHours()*60+n.getMinutes())>=WORK_END?1:0;for(let i=s;i<s+7;i++){const t=new Date(n);t.setDate(n.getDate()+i);d.push(t)}return d}
     function fmt(d){return d.toISOString().split('T')[0]}
     function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m}
     function fDate(d){const[y,m,dd]=d.split('-');return`${dd}.${m}.${y}`}
-    function isPast(a){const[h,m]=a.time.split(':').map(Number),d=new Date(a.date);d.setHours(h,m,0,0);return new Date()>new Date(d.getTime()+a.service.durationMin*60000)}
+    function isPast(a){const[h,m]=a.time.split(':').map(Number),d=new Date(a.date);d.setHours(h,m,0,0);return new Date()>new Date(d.getTime()+(a.durationMin||60)*60000)}
     function isTimePast(ds,ts){if(ds!==fmt(new Date()))return!1;return t2m(ts)<=new Date().getHours()*60+new Date().getMinutes()}
  
     function renderApp(){
@@ -383,7 +401,7 @@
                 <div id="tm" class="time-grid"></div>
                 <div id="sum" class="selected-summary"></div>
                 <div class="btn-wrap" id="bw"><button class="primary-btn" id="bkBtn">Записаться</button></div>
-                <button class="admin-toggle" id="admTg">🔑 панель администратора</button>
+                <button class="admin-toggle" id="admTg" style="display:none">🔑 панель администратора</button>
                 <div id="admPn" style="display:none"></div>
             </div>
             <div class="screen" id="appointmentsScreen">
@@ -413,6 +431,7 @@
         document.getElementById('logoutBtn').onclick=logout;
         document.getElementById('bkBtn').onclick=book;
         document.getElementById('admTg').onclick=toggleAdmin;
+        document.getElementById('admTg').style.display = isAdminUser ? 'block' : 'none';
         document.getElementById('rvSubmit').onclick=submitReview;
         document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>switchScreen(b.dataset.screen));
         document.querySelectorAll('#stars .star').forEach(s=>s.onclick=()=>{reviewRating=+s.dataset.star;updateStars()});
@@ -446,7 +465,7 @@
         const bs=new Set(blockedSlots.filter(s=>s.date===selDate).map(s=>s.time)),dm=selService.durationMin;
         c.innerHTML=ALL_SLOTS.map(t=>{
             const ab=bs.has(t),oob=t2m(t)+dm>WORK_END,past=isTimePast(selDate,t);
-            const ap=appointments.some(a=>{if(a.date!==selDate)return!1;const as=t2m(a.time);return t2m(t)<(as+a.service.durationMin+15)&&(t2m(t)+dm+15)>as});
+            const ap=occupied.some(a=>{if(a.date!==selDate)return!1;const as=t2m(a.time);return t2m(t)<(as+a.durationMin+15)&&(t2m(t)+dm+15)>as});
             const bl=ab||ap||oob||past,sel=t===selTime&&!bl;
             return`<div class="time-slot${sel?' selected':''}${ab||oob?' blocked':''}${past?' past-time':''}${ap&&!ab&&!past?' booked':''}" data-time="${t}">${t}</div>`;
         }).join('');
@@ -463,24 +482,6 @@
         document.getElementById('sum').textContent=p.join(' | ');
     }
  
-    async function sendTelegramNotification(userId, message) {
-        try {
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: userId,
-                    text: message,
-                    parse_mode: 'HTML'
-                })
-            });
-        } catch(e) {}
-    }
- 
-    function notifyAdmins(message) {
-        ADMIN_IDS.forEach(adminId => sendTelegramNotification(adminId, message));
-    }
- 
     function showSuccess(svc,date,time){
         document.querySelectorAll('.success-overlay,.cancel-overlay').forEach(o=>o.remove());
         const ov=document.createElement('div');ov.className='success-overlay';
@@ -491,84 +492,74 @@
         ov.addEventListener('click',e=>{if(e.target===ov)cl()});
     }
  
-    function book(){
+    async function book(){
         if(!selService)return alert('Выберите вид массажа');
         if(!selDate)return alert('Выберите дату');
         if(!selTime)return alert('Выберите время');
-        appointments.push({id:Date.now(),service:selService,date:selDate,time:selTime});
-        saveData();
-        showSuccess(selService,selDate,selTime);
- 
-        // Уведомление клиенту
-        if(currentUser && currentUser.id) {
-            sendTelegramNotification(currentUser.id,
-                `✅ <b>Запись подтверждена!</b>\n\n` +
-                `💆 ${selService.name}\n` +
-                `📅 ${fDate(selDate)}\n` +
-                `⏰ ${selTime}\n` +
-                `🕐 Длительность: ${selService.duration}\n\n` +
-                `📍 г. Лобня, Катюшки 58\n` +
-                `📞 +7 968 513 2011`
-            );
+        const btn=document.getElementById('bkBtn');
+        btn.disabled=true;
+        try{
+            const r=await fetch(API+'/book',{
+                method:'POST',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    userId:currentUser.id,userName:currentUser.name,username:currentUser.username||'',
+                    service:selService,date:selDate,time:selTime
+                })
+            });
+            const d=await r.json();
+            if(!d.ok){
+                alert(d.error==='slot taken'||d.error==='slot blocked'||d.error==='day blocked' ? 'Это время уже недоступно, выберите другое' : 'Не удалось записаться, попробуйте ещё раз');
+                await refreshAndRerender();
+                return;
+            }
+            showSuccess(selService,selDate,selTime);
+            selTime=null;
+            await refreshAndRerender();
+        }catch(e){
+            alert('Ошибка соединения');
+        }finally{
+            btn.disabled=false;
         }
- 
-        // Уведомление админам о новой записи
-        notifyAdmins(
-            `🆕 <b>Новая запись!</b>\n\n` +
-            `👤 Клиент: ${currentUser.name}${currentUser.username ? ' (@'+currentUser.username+')' : ''}\n` +
-            `💆 ${selService.name} · ${selService.duration}\n` +
-            `📅 ${fDate(selDate)}\n` +
-            `⏰ ${selTime}`
-        );
- 
-        selTime=null;renderSlots();updateSummary();renderAppointments();
     }
  
     function renderAppointments(){
         const c=document.getElementById('apptList');
-        if(!appointments.length){c.innerHTML='<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cdb19c" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>У вас пока нет записей</div>';return}
-        const s=[...appointments].sort((a,b)=>(isPast(a)?1:0)-(isPast(b)?1:0)||(a.date+a.time).localeCompare(b.date+b.time));
-        c.innerHTML=s.map(a=>`<div class="card"><div class="card-row"><div><div class="card-service">${a.service.name} · ${a.service.duration}</div><div style="font-size:13px"><strong>${fDate(a.date)}</strong> · ${a.time}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="card-status ${isPast(a)?'past':'upcoming'}">${isPast(a)?'Завершён':'Ожидается'}</span>${!isPast(a)?`<button class="cancel-btn" data-id="${a.id}">Отменить</button>`:''}</div></div></div>`).join('');
-        document.querySelectorAll('.cancel-btn').forEach(b=>b.onclick=()=>cancelAppt(+b.dataset.id));
+        if(!myAppointments.length){c.innerHTML='<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cdb19c" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>У вас пока нет записей</div>';return}
+        const s=[...myAppointments].sort((a,b)=>(isPast(a)?1:0)-(isPast(b)?1:0)||(a.date+a.time).localeCompare(b.date+b.time));
+        c.innerHTML=s.map(a=>`<div class="card"><div class="card-row"><div><div class="card-service">${a.service} · ${a.duration}</div><div style="font-size:13px"><strong>${fDate(a.date)}</strong> · ${a.time}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="card-status ${isPast(a)?'past':'upcoming'}">${isPast(a)?'Завершён':'Ожидается'}</span>${!isPast(a)?`<button class="cancel-btn" data-id="${a.id}">Отменить</button>`:''}</div></div></div>`).join('');
+        document.querySelectorAll('#apptList .cancel-btn').forEach(b=>b.onclick=()=>cancelAppt(+b.dataset.id));
     }
  
     function cancelAppt(id){
-        const a=appointments.find(x=>x.id===id);if(!a)return;
+        const a=myAppointments.find(x=>x.id===id)||allAppointments.find(x=>x.id===id);if(!a)return;
         document.querySelectorAll('.cancel-overlay').forEach(o=>o.remove());
         const ov=document.createElement('div');ov.className='cancel-overlay';
-        ov.innerHTML=`<div class="cancel-modal"><div class="cancel-icon-circle"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#c4956a" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="cancel-big-text">Отменить запись?</div><div class="cancel-sub-text">${a.service.name}<br>${fDate(a.date)} в ${a.time}</div><div class="cancel-btns"><button class="cancel-btn-no" id="noBtn">Нет</button><button class="cancel-btn-yes" id="yesBtn">Да, отменить</button></div></div>`;
+        ov.innerHTML=`<div class="cancel-modal"><div class="cancel-icon-circle"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#c4956a" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="cancel-big-text">Отменить запись?</div><div class="cancel-sub-text">${a.service}<br>${fDate(a.date)} в ${a.time}</div><div class="cancel-btns"><button class="cancel-btn-no" id="noBtn">Нет</button><button class="cancel-btn-yes" id="yesBtn">Да, отменить</button></div></div>`;
         document.body.appendChild(ov);
         const cl=()=>{ov.style.opacity='0';ov.style.transition='opacity 0.25s';setTimeout(()=>ov.remove(),250)};
         document.getElementById('noBtn').onclick=cl;
-        document.getElementById('yesBtn').onclick=()=>{
-            appointments=appointments.filter(x=>x.id!==id);saveData();cl();
- 
-            // Уведомление клиенту об отмене
-            if(currentUser && currentUser.id) {
-                sendTelegramNotification(currentUser.id, `❌ <b>Запись отменена</b>\n\n${a.service.name}\n${fDate(a.date)} в ${a.time}`);
-            }
- 
-            // Уведомление админам об отмене
-            notifyAdmins(
-                `❌ <b>Отмена записи</b>\n\n` +
-                `👤 Клиент: ${currentUser.name}${currentUser.username ? ' (@'+currentUser.username+')' : ''}\n` +
-                `💆 ${a.service.name}\n` +
-                `📅 ${fDate(a.date)} в ${a.time}`
-            );
- 
-            setTimeout(()=>{renderAppointments();updateReviewForm()},300);
+        document.getElementById('yesBtn').onclick=async()=>{
+            try{
+                await fetch(API+'/cancel',{
+                    method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({id:a.id,userId:currentUser.id})
+                });
+            }catch(e){}
+            cl();
+            await refreshAndRerender();
+            updateReviewForm();
         };
     }
  
     function submitReview(){
         if(reviews.some(r=>r.userId===currentUser.id))return alert('Вы уже оставили отзыв');
-        if(!appointments.some(a=>isPast(a)))return alert('Посетите массаж, чтобы оставить отзыв');
+        if(!myAppointments.some(a=>isPast(a)))return alert('Посетите массаж, чтобы оставить отзыв');
         const author=document.getElementById('rvAuthor').value.trim()||currentUser.name;
         const text=document.getElementById('rvText').value.trim();
         if(!text)return alert('Напишите отзыв');
         if(!reviewRating)return alert('Поставьте оценку');
         reviews.push({id:Date.now(),userId:currentUser.id,author,text,stars:reviewRating,date:new Date().toLocaleDateString('ru',{day:'numeric',month:'long',year:'numeric'})});
-        saveData();
+        saveReviews();
         document.getElementById('rvAuthor').value='';document.getElementById('rvText').value='';reviewRating=0;updateStars();
         renderReviews();
     }
@@ -577,29 +568,90 @@
         const c=document.getElementById('rvList');
         if(!reviews.length){c.innerHTML='<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cdb19c" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="12" y2="13"/></svg>Отзывов пока нет</div>';return}
         c.innerHTML=reviews.slice().reverse().map(r=>`<div class="review-card">${r.userId===currentUser?.id?`<button class="delete-review-btn" data-id="${r.id}">×</button>`:''}<div class="review-header"><div class="review-author">${r.author}</div><div class="review-date">${r.date}</div></div><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><div class="review-text">${r.text}</div></div>`).join('');
-        document.querySelectorAll('.delete-review-btn').forEach(b=>b.onclick=()=>{reviews=reviews.filter(r=>r.id!==+b.dataset.id);saveData();renderReviews();updateReviewForm()});
+        document.querySelectorAll('.delete-review-btn').forEach(b=>b.onclick=()=>{reviews=reviews.filter(r=>r.id!==+b.dataset.id);saveReviews();renderReviews();updateReviewForm()});
         updateReviewForm();
     }
  
     function updateReviewForm(){
         const f=document.getElementById('rvForm'),m=document.getElementById('rvMsg');
-        const hp=appointments.some(a=>isPast(a)),hr=reviews.some(r=>r.userId===currentUser?.id);
+        const hp=myAppointments.some(a=>isPast(a)),hr=reviews.some(r=>r.userId===currentUser?.id);
         if(!hp&&!hr){f.classList.add('disabled');m.textContent='Посетите массаж, чтобы оставить отзыв'}
         else if(hr){f.classList.add('disabled');m.textContent='Вы уже оставили отзыв'}
         else{f.classList.remove('disabled');m.textContent=''}
     }
  
+    // ===== АДМИНКА =====
     function toggleAdmin(){
+        if(!isAdminUser)return;
         const p=document.getElementById('admPn');
         if(p.style.display==='block'){p.style.display='none';return}
-        const dates=getDates();
-        p.innerHTML=`<div class="admin-panel"><div style="font-weight:500;margin-bottom:10px;font-size:14px">Управление доступностью</div><div class="admin-row"><select id="admDate">${dates.map(d=>`<option value="${fmt(d)}">${fDate(fmt(d))}</option>`).join('')}</select><select id="admTime">${ALL_SLOTS.map(t=>`<option value="${t}">${t}</option>`).join('')}</select><button class="mini-btn danger" id="blSlot">Заблокировать слот</button></div><div class="admin-row"><button class="mini-btn danger" id="blDay">Заблокировать день</button><button class="mini-btn" id="unDay">Разблокировать день</button></div></div>`;
+        renderAdminPanelContent();
         p.style.display='block';
-        document.getElementById('blSlot').onclick=()=>{blockedSlots.push({date:document.getElementById('admDate').value,time:document.getElementById('admTime').value});saveData();renderSlots();toggleAdmin()};
-        document.getElementById('blDay').onclick=()=>{blockedDays.push(document.getElementById('admDate').value);saveData();renderDates();renderSlots();toggleAdmin()};
-        document.getElementById('unDay').onclick=()=>{blockedDays=blockedDays.filter(d=>d!==document.getElementById('admDate').value);saveData();renderDates();renderSlots();toggleAdmin()};
+    }
+ 
+    function renderAdminPanelContent(){
+        const p=document.getElementById('admPn');
+        const dates=getDates();
+        const upcoming=[...allAppointments].filter(a=>!isPast(a)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+        const past=[...allAppointments].filter(a=>isPast(a)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+ 
+        p.innerHTML=`
+            <div class="admin-panel">
+                <div style="font-weight:500;margin-bottom:10px;font-size:14px">Управление доступностью</div>
+                <div class="admin-row">
+                    <select id="admDate">${dates.map(d=>`<option value="${fmt(d)}">${fDate(fmt(d))}</option>`).join('')}</select>
+                    <select id="admTime">${ALL_SLOTS.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+                    <button class="mini-btn danger" id="blSlot">Заблокировать время</button>
+                    <button class="mini-btn" id="unSlot">Разблокировать время</button>
+                </div>
+                <div class="admin-row">
+                    <button class="mini-btn danger" id="blDay">Заблокировать день</button>
+                    <button class="mini-btn" id="unDay">Разблокировать день</button>
+                </div>
+                <div style="font-size:11px;color:var(--text2);margin-top:4px">
+                    ${blockedDays.length?`Заблокированные дни: ${blockedDays.map(d=>`<span class="tag">${fDate(d)}</span>`).join('')}`:'Заблокированных дней нет'}
+                </div>
+                <div style="font-size:11px;color:var(--text2);margin-top:6px">
+                    ${blockedSlots.length?`Заблокированные слоты: ${blockedSlots.map(s=>`<span class="tag">${fDate(s.date)} ${s.time}</span>`).join('')}`:'Заблокированных слотов нет'}
+                </div>
+ 
+                <div class="admin-section-title">Предстоящие записи (${upcoming.length})</div>
+                <div id="admUpcoming">${upcoming.length?upcoming.map(renderAdminApptCard).join(''):'<div style="font-size:12px;color:var(--text2)">Нет предстоящих записей</div>'}</div>
+ 
+                <div class="admin-section-title">Прошедшие записи (${past.length})</div>
+                <div id="admPast">${past.length?past.map(renderAdminApptCard).join(''):'<div style="font-size:12px;color:var(--text2)">Пока нет</div>'}</div>
+            </div>`;
+ 
+        document.getElementById('blSlot').onclick=()=>adminAction('/admin/block-slot',{date:document.getElementById('admDate').value,time:document.getElementById('admTime').value});
+        document.getElementById('unSlot').onclick=()=>adminAction('/admin/unblock-slot',{date:document.getElementById('admDate').value,time:document.getElementById('admTime').value});
+        document.getElementById('blDay').onclick=()=>adminAction('/admin/block-day',{date:document.getElementById('admDate').value});
+        document.getElementById('unDay').onclick=()=>adminAction('/admin/unblock-day',{date:document.getElementById('admDate').value});
+ 
+        p.querySelectorAll('.admin-cancel-btn').forEach(b=>b.onclick=()=>cancelAppt(+b.dataset.id));
+    }
+ 
+    function renderAdminApptCard(a){
+        const nameLine=a.username?`${a.userName} (@${a.username})`:a.userName;
+        return `<div class="admin-appt-card">
+            <div class="admin-appt-top">
+                <div class="admin-appt-client">${nameLine}</div>
+                ${!isPast(a)?`<button class="mini-btn danger admin-cancel-btn" data-id="${a.id}">Отменить</button>`:''}
+            </div>
+            <div class="admin-appt-meta">${a.service} · ${a.duration} — ${fDate(a.date)} в ${a.time}</div>
+        </div>`;
+    }
+ 
+    async function adminAction(path, extra){
+        try{
+            await fetch(API+path,{
+                method:'POST',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({adminId:currentUser.id, ...extra})
+            });
+        }catch(e){}
+        await refreshAndRerender();
     }
 })();
 </script>
 </body>
 </html>
+ 
