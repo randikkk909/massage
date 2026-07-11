@@ -2,96 +2,397 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Massage Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MASSAGE · студия</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Arial,sans-serif;background:#faf7f2;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;color:#3c3028}
-        .box{background:#fff;border-radius:20px;padding:30px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center}
-        h1{font-size:22px;font-weight:300;letter-spacing:2px;color:#5e4e3e;margin-bottom:20px;text-transform:uppercase}
-        h1 span{font-weight:600;color:#b08968}
-        .tg-btn{display:block;width:100%;padding:14px;background:#2AABEE;color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:bold;text-decoration:none;margin-bottom:15px;cursor:pointer}
-        input{width:100%;padding:14px;border:2px solid #e0d5c8;border-radius:12px;font-size:22px;text-align:center;letter-spacing:6px;margin-bottom:12px;outline:none;font-weight:bold}
-        input:focus{border-color:#b08968}
-        .btn{width:100%;padding:14px;background:#b08968;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:bold;cursor:pointer}
-        .btn:active{opacity:.8}
-        .msg{font-size:13px;color:#8b7b6b;margin:10px 0}
-        .err{color:#c44;font-size:12px;min-height:18px}
-        .info{background:#f5f0ea;padding:10px;border-radius:10px;font-size:12px;color:#5e4e3e;margin:12px 0;text-align:left;line-height:1.6}
-        .divider{display:flex;align-items:center;gap:10px;margin:15px 0;color:#8b7b6b;font-size:12px}
-        .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e0d5c8}
+        :root {
+            --bg: #faf7f3; --surface: #ffffff; --surface2: #f5f0ea;
+            --text: #3c3028; --text2: #8b7b6b; --accent: #b08968;
+            --border: #e8dfd3; --danger: #c4956a; --success: #8faa7b;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5efe8 0%, #faf7f3 50%, #f0e8dd 100%);
+            min-height: 100vh; display:flex; justify-content:center; align-items:center;
+            padding: 12px; color: var(--text);
+        }
+        .app {
+            width: 100%; max-width: 420px; background: var(--surface);
+            border-radius: 32px; box-shadow: 0 24px 48px rgba(60,30,10,0.1);
+            overflow: hidden; display: flex; flex-direction: column;
+            height: 780px; max-height: 92vh; border: 1px solid var(--border);
+        }
+        .header {
+            padding: 16px 20px; text-align: center;
+            background: linear-gradient(180deg, #fdfaf6 0%, #faf5ef 100%);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo { font-size: 22px; font-weight: 300; letter-spacing: 2px; color: #5e4e3e; text-transform: uppercase; }
+        .logo span { font-weight: 600; color: var(--accent); }
+        .user-bar { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--text2); }
+        .user-avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+        .logout-link { color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+        .screen { display: none; flex-direction: column; flex: 1; padding: 14px; overflow-y: auto; }
+        .screen.active { display: flex; }
+        h2 { font-weight: 500; font-size: 16px; margin-bottom: 10px; color: #5e4e3e; }
+
+        .services-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .service-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface2); border-radius: 14px; border: 1.5px solid transparent; cursor: pointer; }
+        .service-card:active { transform: scale(0.98); }
+        .service-card.selected { background: #f0e6da; border-color: var(--accent); }
+        .service-name { font-weight: 500; font-size: 13px; }
+        .service-duration { font-size: 11px; color: var(--text2); }
+        .radio-circle { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d4c4b0; }
+        .service-card.selected .radio-circle { border-color: var(--accent); background: var(--accent); }
+
+        .date-scroll { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; margin-bottom: 14px; }
+        .date-scroll::-webkit-scrollbar { height: 0; }
+        .date-btn { flex: 0 0 auto; min-width: 50px; padding: 10px 6px; border-radius: 14px; background: var(--surface2); border: 1.5px solid transparent; cursor: pointer; text-align: center; font-size: 13px; }
+        .date-btn.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .date-btn.blocked, .date-btn.past { opacity: 0.4; pointer-events: none; }
+
+        .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+        .time-slot { padding: 10px 4px; text-align: center; background: var(--surface2); border-radius: 12px; font-size: 12px; cursor: pointer; border: 1.5px solid transparent; }
+        .time-slot:active { transform: scale(0.94); }
+        .time-slot.selected { background: var(--accent); color: #fff; }
+        .time-slot.blocked, .time-slot.booked, .time-slot.past-time { opacity: 0.4; pointer-events: none; }
+
+        .selected-summary { font-size: 11px; color: var(--accent); text-align: center; margin-bottom: 8px; }
+        .btn-wrap { margin-top: auto; padding-top: 8px; }
+        .primary-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #b08968, #c9a07a); border: none; border-radius: 16px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .primary-btn:active { transform: scale(0.97); }
+
+        .card { background: var(--surface2); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .card-row { display: flex; justify-content: space-between; align-items: center; }
+        .card-service { font-size: 11px; color: var(--accent); font-weight: 500; }
+        .card-status { font-size: 10px; padding: 3px 8px; border-radius: 12px; }
+        .card-status.upcoming { background: #e8f0df; color: #7a9a5c; }
+        .card-status.past { background: #f0e8de; color: #b09070; }
+        .cancel-btn { background: none; border: 1px solid #d4c4b0; color: #9b7b62; padding: 6px 12px; border-radius: 20px; font-size: 10px; cursor: pointer; }
+
+        .review-card { background: var(--surface2); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--border); position: relative; }
+        .stars { color: #d4a76a; font-size: 14px; }
+        .stars-interactive { display: flex; gap: 2px; font-size: 24px; color: #e0d0bb; cursor: pointer; margin-bottom: 8px; }
+        .stars-interactive .star.active { color: #d4a76a; }
+        .review-form { background: var(--surface2); border-radius: 16px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border); }
+        .review-form.disabled { opacity: 0.5; pointer-events: none; }
+        .review-form input, .review-form textarea { width: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 10px; font-size: 12px; font-family: inherit; margin-bottom: 8px; outline: none; }
+        .review-form textarea { min-height: 60px; resize: vertical; }
+        .submit-review-btn { width: 100%; padding: 10px; background: var(--accent); border: none; border-radius: 12px; color: #fff; font-size: 13px; cursor: pointer; }
+
+        .bottom-nav { display: flex; border-top: 1px solid var(--border); padding: 6px 8px; gap: 2px; background: var(--surface); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; font-size: 10px; color: var(--text2); cursor: pointer; border: none; background: transparent; border-radius: 12px; }
+        .nav-item.active { color: var(--accent); font-weight: 600; background: rgba(176,137,104,0.06); }
+        .nav-item svg { width: 18px; height: 18px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .modal-box { background: #fff; border-radius: 24px; padding: 28px 22px; text-align: center; max-width: 300px; width: 90%; animation: popIn 0.4s; }
+        @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+        .modal-icon { width: 70px; height: 70px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: bounce 0.6s 0.1s both; }
+        @keyframes bounce { 0%{transform:scale(0)} 55%{transform:scale(1.2)} 100%{transform:scale(1)} }
+        .modal-icon.success { background: #e8f0df; }
+        .modal-icon.danger { background: #fbe9e0; }
+        .modal-title { font-size: 20px; font-weight: 600; color: #5e4e3e; margin-bottom: 6px; }
+        .modal-text { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+        .modal-btns { display: flex; gap: 8px; margin-top: 14px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 24px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+        .modal-btn.primary { background: var(--accent); color: #fff; }
+        .modal-btn.secondary { background: var(--surface2); color: var(--text); }
+        .modal-btn.danger { background: var(--danger); color: #fff; }
+
+        .admin-toggle { display: block; margin: 8px auto 0; font-size: 10px; color: var(--text2); background: none; border: none; cursor: pointer; }
+        .admin-panel { margin-top: 10px; background: #f9f5ef; border-radius: 16px; padding: 12px; border: 1px solid var(--border); }
+        .admin-row { display: flex; gap: 4px; margin-bottom: 6px; }
+        select { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 6px 10px; font-size: 11px; font-family: inherit; }
+        .mini-btn { padding: 6px 10px; border-radius: 16px; font-size: 10px; cursor: pointer; border: none; background: #e8ddcf; color: #5e4e3e; }
+        .mini-btn.danger { background: var(--danger); color: #fff; }
+        .empty-state { text-align: center; padding: 30px; color: var(--text2); font-size: 13px; }
+
+        .auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 20px; gap: 14px; text-align: center; }
+        .tg-login-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 280px; padding: 14px; background: #2AABEE; color: #fff; border: none; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .auth-input { width: 100%; max-width: 280px; padding: 12px; border: 2px solid var(--border); border-radius: 12px; font-size: 20px; text-align: center; letter-spacing: 6px; outline: none; }
+        .auth-input:focus { border-color: var(--accent); }
+        .auth-btn { width: 100%; max-width: 280px; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
-<div class="box">
-    <h1>massage <span>studio</span></h1>
-    <div id="loginForm">
-        <a class="tg-btn" href="https://t.me/MassageLobnya_bot?start=web" target="_blank">📱 Войти через Telegram</a>
-        <div class="info">Нажмите кнопку → откроется бот → нажмите <b>«Войти на сайт»</b> → вы авторизуетесь</div>
-        <div class="divider">или введите код</div>
-        <input type="text" id="code" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-        <button class="btn" onclick="login()">Войти по коду</button>
-        <div class="err" id="err"></div>
-    </div>
-    <div id="loggedIn" style="display:none">
-        <div style="width:60px;height:60px;border-radius:50%;background:#b08968;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 15px" id="ava"></div>
-        <p class="msg" id="name"></p>
-        <button class="btn" onclick="logout()">Выйти</button>
-    </div>
+<div class="app" id="app">
+    <!-- Контент грузится динамически -->
 </div>
-<script>
-var API='https://tgweb.bebraila5990d.workers.dev';
 
-// СНАЧАЛА проверяем URL, ПОТОМ localStorage
-(function(){
-    var p=new URLSearchParams(window.location.search);
+<script>
+// ==================== ДАННЫЕ ====================
+const SERVICES = [
+    { id: 'classic60', name: 'Классический массаж', duration: '60 мин', durationMin: 60 },
+    { id: 'classic90', name: 'Классический массаж', duration: '90 мин', durationMin: 90 },
+    { id: 'lymph90', name: 'Лимфодренажный массаж', duration: '90 мин', durationMin: 90 },
+    { id: 'face60', name: 'Массаж лица', duration: '60 мин', durationMin: 60 },
+    { id: 'back30', name: 'Массаж спины', duration: '30 мин', durationMin: 30 },
+];
+
+function genSlots() { const s=[]; for(let h=9;h<=21;h++)for(let m=0;m<60;m+=15){if(h===21&&m>0)break;s.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)} return s; }
+const ALL_SLOTS=genSlots(), WORK_END=21*60;
+const API='https://tgweb.bebraila5990d.workers.dev';
+
+let currentUser=null, appointments=[], reviews=[], blockedSlots=[], blockedDays=[];
+let selService=null, selDate=null, selTime=null, reviewRating=0;
+
+// ==================== АВТОРИЗАЦИЯ ====================
+function init(){
+    const p=new URLSearchParams(window.location.search);
     if(p.get('user')){
         try{
-            var u=JSON.parse(decodeURIComponent(p.get('user')));
+            const u=JSON.parse(decodeURIComponent(p.get('user')));
+            if(!u.avatar||u.avatar==='�') u.avatar='👤';
             localStorage.setItem('muser',JSON.stringify(u));
-            // Очищаем URL
             window.history.replaceState({},'',window.location.pathname);
-            showUser(u);
-            return;
+            currentUser=u; loadData(); return;
         }catch(e){}
     }
-    
-    var s=localStorage.getItem('muser');
-    if(s){
-        try{
-            var u=JSON.parse(s);
-            showUser(u);
-            return;
-        }catch(e){}
-    }
-})();
-
-function showUser(u){
-    document.getElementById('loginForm').style.display='none';
-    document.getElementById('loggedIn').style.display='block';
-    document.getElementById('ava').textContent=u.avatar||'?';
-    document.getElementById('name').textContent=u.name||'Пользователь';
+    const s=localStorage.getItem('muser');
+    if(s){ try{ currentUser=JSON.parse(s); loadData(); return; }catch(e){} }
+    showAuth();
 }
 
-async function login(){
-    var c=document.getElementById('code').value.trim();
-    if(!c||c.length!==6){document.getElementById('err').textContent='Введите 6 цифр';return}
-    document.getElementById('err').textContent='Проверяем...';
+function showAuth(){
+    document.getElementById('app').innerHTML=`
+        <div class="auth-container">
+            <div class="logo" style="font-size:22px">massage <span style="color:#b08968;font-weight:600">studio</span></div>
+            <p style="font-size:13px;color:#8b7b6b">Войдите через Telegram</p>
+            <a class="tg-login-btn" href="https://t.me/MassageLobnya_bot?start=web" target="_blank">📱 Войти через Telegram</a>
+            <p style="font-size:12px;color:#8b7b6b">или введите код</p>
+            <input type="text" class="auth-input" id="authCode" maxlength="6" placeholder="000000" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <button class="auth-btn" onclick="loginWithCode()">Войти</button>
+            <div id="authErr" style="color:#c44;font-size:12px"></div>
+        </div>`;
+}
+
+async function loginWithCode(){
+    const c=document.getElementById('authCode').value.trim();
+    if(!c||c.length!==6){document.getElementById('authErr').textContent='Введите 6 цифр';return}
     try{
-        var r=await fetch(API+'/check?code='+c);
-        var d=await r.json();
-        if(d.ok){localStorage.setItem('muser',JSON.stringify(d.user));showUser(d.user)}
-        else document.getElementById('err').textContent='Неверный код'
-    }catch(e){document.getElementById('err').textContent='Ошибка соединения'}
+        const r=await fetch(API+'/check?code='+c);
+        const d=await r.json();
+        if(d.ok){currentUser=d.user;localStorage.setItem('muser',JSON.stringify(d.user));loadData()}
+        else document.getElementById('authErr').textContent='Неверный код'
+    }catch(e){document.getElementById('authErr').textContent='Ошибка'}
 }
 
 function logout(){
-    localStorage.removeItem('muser');
-    document.getElementById('loginForm').style.display='block';
-    document.getElementById('loggedIn').style.display='none';
-    document.getElementById('code').value='';
-    document.getElementById('err').textContent='';
+    localStorage.removeItem('muser');currentUser=null;showAuth();
 }
+
+// ==================== ЗАГРУЗКА ДАННЫХ ====================
+function loadData(){
+    const key=currentUser.id;
+    appointments=JSON.parse(localStorage.getItem('appts_'+key)||'[]');
+    blockedSlots=JSON.parse(localStorage.getItem('blockedSlots')||'[]');
+    blockedDays=JSON.parse(localStorage.getItem('blockedDays')||'[]');
+    reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
+    renderApp();
+}
+
+function saveData(){
+    if(!currentUser)return;
+    localStorage.setItem('appts_'+currentUser.id,JSON.stringify(appointments));
+    localStorage.setItem('blockedSlots',JSON.stringify(blockedSlots));
+    localStorage.setItem('blockedDays',JSON.stringify(blockedDays));
+    localStorage.setItem('reviews',JSON.stringify(reviews));
+}
+
+// ==================== РЕНДЕР ====================
+let currentScreen='booking';
+
+function renderApp(){
+    document.getElementById('app').innerHTML=`
+        <div class="header">
+            <div class="logo">massage <span>studio</span></div>
+            <div class="user-bar">
+                <div class="user-avatar">${currentUser.avatar||'👤'}</div>
+                <span>${currentUser.name}</span>
+                <span class="logout-link" onclick="logout()">выйти</span>
+            </div>
+        </div>
+        <div class="screen active" id="bookingScreen">
+            <h2>Вид массажа</h2>
+            <div id="servicesContainer" class="services-list"></div>
+            <h2>Дата</h2>
+            <div id="dateContainer" class="date-scroll"></div>
+            <h2>Время</h2>
+            <div id="timeContainer" class="time-grid"></div>
+            <div id="selectedSummary" class="selected-summary"></div>
+            <div class="btn-wrap"><button class="primary-btn" onclick="book()">Записаться</button></div>
+            <button class="admin-toggle" onclick="toggleAdmin()">🔑 Админ</button>
+            <div id="adminPanel" style="display:none"></div>
+        </div>
+        <div class="screen" id="appointmentsScreen">
+            <h2>Мои записи</h2>
+            <div id="appointmentsList"></div>
+        </div>
+        <div class="screen" id="reviewsScreen">
+            <h2>Отзывы</h2>
+            <div class="review-form" id="reviewForm">
+                <div style="font-weight:500;font-size:13px;margin-bottom:6px">Оставить отзыв</div>
+                <div class="stars-interactive" id="starRating">
+                    ${[1,2,3,4,5].map(i=>`<span class="star" data-star="${i}" onclick="setStars(${i})">★</span>`).join('')}
+                </div>
+                <input type="text" id="reviewAuthor" placeholder="Ваше имя" maxlength="30">
+                <textarea id="reviewText" placeholder="Поделитесь впечатлениями..." maxlength="500"></textarea>
+                <button class="submit-review-btn" onclick="submitReview()">Отправить отзыв</button>
+                <div id="reviewLimitMsg" style="font-size:10px;color:var(--text2);text-align:center;margin-top:6px"></div>
+            </div>
+            <div id="reviewsList"></div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-item active" data-screen="booking" onclick="switchScreen('booking')">📅 Запись</button>
+            <button class="nav-item" data-screen="appointments" onclick="switchScreen('appointments')">📋 Мои записи</button>
+            <button class="nav-item" data-screen="reviews" onclick="switchScreen('reviews')">💬 Отзывы</button>
+        </div>`;
+    switchScreen('booking');
+    renderServices(); renderDates(); renderSlots(); renderAppointments(); renderReviews(); updateSummary();
+}
+
+function switchScreen(id){
+    currentScreen=id;
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id+'Screen').classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
+}
+
+function getDates(){const d=[],n=new Date();let s=(n.getHours()*60+n.getMinutes())>=WORK_END?1:0;for(let i=s;i<s+7;i++){const t=new Date(n);t.setDate(n.getDate()+i);d.push(t)}return d}
+function fmt(d){return d.toISOString().split('T')[0]}
+function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m}
+function fDate(d){const[y,m,dd]=d.split('-');return`${dd}.${m}.${y}`}
+function isPast(a){const[h,m]=a.time.split(':').map(Number),d=new Date(a.date);d.setHours(h,m,0,0);return new Date()>new Date(d.getTime()+a.service.durationMin*60000)}
+function isTimePast(ds,ts){if(ds!==fmt(new Date()))return!1;return t2m(ts)<=new Date().getHours()*60+new Date().getMinutes()}
+
+function renderServices(){
+    const c=document.getElementById('servicesContainer');
+    c.innerHTML=SERVICES.map(s=>`<div class="service-card ${selService?.id===s.id?'selected':''}" onclick="selService=SERVICES.find(x=>x.id==='${s.id}');selTime=null;renderServices();renderSlots();updateSummary()"><div><div class="service-name">${s.name}</div><div class="service-duration">${s.duration}</div></div><div class="radio-circle"></div></div>`).join('');
+}
+
+function renderDates(){
+    const c=document.getElementById('dateContainer'),dates=getDates(),bs=new Set(blockedDays);
+    c.innerHTML=dates.map(d=>{const ds=fmt(d);return`<div class="date-btn ${ds===selDate?'selected':''} ${bs.has(ds)?'blocked':''} ${ds<fmt(new Date())?'past':''}" onclick="selDate='${ds}';selTime=null;renderDates();renderSlots();updateSummary()">${d.getDate()}<br><small>${d.toLocaleDateString('ru',{month:'short'})}</small></div>`}).join('');
+}
+
+function renderSlots(){
+    const c=document.getElementById('timeContainer');
+    if(!selDate){c.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text2);padding:12px">Выберите дату</div>';return}
+    if(!selService){c.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text2);padding:12px">Выберите массаж</div>';return}
+    const bs=new Set(blockedSlots.filter(s=>s.date===selDate).map(s=>s.time)),dm=selService.durationMin;
+    c.innerHTML=ALL_SLOTS.map(t=>{
+        const ab=bs.has(t),oob=t2m(t)+dm>WORK_END,past=isTimePast(selDate,t);
+        const ap=appointments.some(a=>{if(a.date!==selDate)return!1;const as=t2m(a.time);return t2m(t)<(as+a.service.durationMin+15)&&(t2m(t)+dm+15)>as});
+        const bl=ab||ap||oob||past,sel=t===selTime&&!bl;
+        return`<div class="time-slot ${sel?'selected':''} ${ab||oob?'blocked':''} ${past?'past-time':''} ${ap&&!ab&&!past?'booked':''}" onclick="if(!${bl}){selTime='${t}';renderSlots();updateSummary()}">${t}</div>`;
+    }).join('');
+}
+
+function updateSummary(){
+    const p=[];
+    if(selService)p.push(selService.name+' · '+selService.duration);
+    if(selDate)p.push(fDate(selDate));
+    if(selTime)p.push(selTime);
+    document.getElementById('selectedSummary').textContent=p.join(' | ');
+}
+
+function showModal(icon,cls,title,details,buttons){
+    const old=document.querySelector('.modal-overlay');if(old)old.remove();
+    const ov=document.createElement('div');ov.className='modal-overlay';
+    ov.innerHTML=`<div class="modal-box"><div class="modal-icon ${cls}">${icon}</div><div class="modal-title">${title}</div>${details.map(d=>`<div class="modal-text">${d}</div>`).join('')}<div class="modal-btns">${buttons.map(b=>`<button class="modal-btn ${b.cls}" data-action="${b.action}">${b.text}</button>`).join('')}</div></div>`;
+    document.body.appendChild(ov);
+    const close=()=>{ov.style.opacity='0';ov.style.transition='opacity 0.2s';setTimeout(()=>ov.remove(),200)};
+    ov.querySelectorAll('.modal-btn').forEach(b=>b.addEventListener('click',()=>{
+        if(b.dataset.action==='close')close();
+        if(b.dataset.action==='confirm'){const def=buttons.find(x=>x.action==='confirm');if(def?.cb){close();setTimeout(def.cb,250)}}
+    }));
+    ov.addEventListener('click',e=>{if(e.target===ov)close()});
+}
+
+function book(){
+    if(!selService)return alert('Выберите массаж');
+    if(!selDate)return alert('Выберите дату');
+    if(!selTime)return alert('Выберите время');
+    appointments.push({id:Date.now(),service:selService,date:selDate,time:selTime});
+    saveData();
+    showModal('✅','success','Вы записаны!',[selService.name+' · '+selService.duration,fDate(selDate)+' в '+selTime],[{text:'Отлично',action:'close',cls:'primary'}]);
+    selTime=null;renderSlots();updateSummary();renderAppointments();
+}
+
+function renderAppointments(){
+    const c=document.getElementById('appointmentsList');
+    const my=appointments;
+    if(!my.length){c.innerHTML='<div class="empty-state">У вас пока нет записей</div>';return}
+    const s=my.sort((a,b)=>isPast(a)&&!isPast(b)?1:!isPast(a)&&isPast(b)?-1:(a.date+a.time).localeCompare(b.date+b.time));
+    c.innerHTML=s.map(a=>`<div class="card"><div class="card-row"><div><div class="card-service">${a.service.name} · ${a.service.duration}</div><div><strong>${fDate(a.date)}</strong> · ${a.time}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="card-status ${isPast(a)?'past':'upcoming'}">${isPast(a)?'Завершён':'Ожидается'}</span>${!isPast(a)?`<button class="cancel-btn" onclick="cancelAppt(${a.id})">Отменить</button>`:''}</div></div></div>`).join('');
+}
+
+function cancelAppt(id){
+    const a=appointments.find(x=>x.id===id);if(!a)return;
+    showModal('❌','danger','Отменить запись?',[a.service.name,fDate(a.date)+' в '+a.time],[
+        {text:'Нет',action:'close',cls:'secondary'},
+        {text:'Да',action:'confirm',cls:'danger',cb:()=>{appointments=appointments.filter(x=>x.id!==id);saveData();renderAppointments();updateReviewForm()}}
+    ]);
+}
+
+function setStars(n){reviewRating=n;document.querySelectorAll('#starRating .star').forEach((s,i)=>s.classList.toggle('active',i<n))}
+
+function submitReview(){
+    if(reviews.some(r=>r.userId===currentUser.id))return alert('Вы уже оставили отзыв');
+    if(!appointments.some(a=>isPast(a)))return alert('Посетите массаж, чтобы оставить отзыв');
+    const author=document.getElementById('reviewAuthor').value.trim()||currentUser.name;
+    const text=document.getElementById('reviewText').value.trim();
+    if(!text)return alert('Напишите отзыв');
+    if(!reviewRating)return alert('Поставьте оценку');
+    reviews.push({id:Date.now(),userId:currentUser.id,author,text,stars:reviewRating,date:new Date().toLocaleDateString('ru',{day:'numeric',month:'long',year:'numeric'})});
+    saveData();
+    document.getElementById('reviewAuthor').value='';document.getElementById('reviewText').value='';reviewRating=0;
+    document.querySelectorAll('#starRating .star').forEach(s=>s.classList.remove('active'));
+    renderReviews();
+}
+
+function renderReviews(){
+    const c=document.getElementById('reviewsList');
+    if(!reviews.length){c.innerHTML='<div class="empty-state">Отзывов пока нет</div>';return}
+    c.innerHTML=reviews.slice().reverse().map(r=>`<div class="review-card">${r.userId===currentUser?.id?`<span style="position:absolute;top:8px;right:10px;cursor:pointer;color:#c4b0a0;font-size:18px" onclick="reviews=reviews.filter(x=>x.id!==${r.id});saveData();renderReviews()">×</span>`:''}<div style="display:flex;justify-content:space-between"><strong style="color:#b08968;font-size:13px">${r.author}</strong><small style="color:#8b7b6b">${r.date}</small></div><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><div style="font-size:12px;margin-top:4px">${r.text}</div></div>`).join('');
+    updateReviewForm();
+}
+
+function updateReviewForm(){
+    const f=document.getElementById('reviewForm'),m=document.getElementById('reviewLimitMsg');
+    const hasPast=appointments.some(a=>isPast(a)),hasReview=reviews.some(r=>r.userId===currentUser?.id);
+    if(!hasPast&&!hasReview){f.classList.add('disabled');m.textContent='Посетите массаж, чтобы оставить отзыв'}
+    else if(hasReview){f.classList.add('disabled');m.textContent='Вы уже оставили отзыв'}
+    else{f.classList.remove('disabled');m.textContent=''}
+}
+
+function toggleAdmin(){
+    const p=document.getElementById('adminPanel');
+    if(p.style.display==='block'){p.style.display='none';return}
+    const dates=getDates();
+    p.innerHTML=`<div class="admin-panel"><div style="font-weight:500;margin-bottom:8px">Управление</div><div class="admin-row"><select id="admDate">${dates.map(d=>`<option value="${fmt(d)}">${fDate(fmt(d))}</option>`).join('')}</select><select id="admTime">${ALL_SLOTS.map(t=>`<option value="${t}">${t}</option>`).join('')}</select><button class="mini-btn danger" onclick="blockSlot()">Блок слота</button></div><div class="admin-row"><button class="mini-btn danger" onclick="blockDay()">Блок дня</button><button class="mini-btn" onclick="unblockDay()">Разблок</button></div></div>`;
+    p.style.display='block';
+}
+
+function blockSlot(){
+    blockedSlots.push({date:document.getElementById('admDate').value,time:document.getElementById('admTime').value});
+    saveData();renderSlots();toggleAdmin();
+}
+function blockDay(){
+    blockedDays.push(document.getElementById('admDate').value);
+    saveData();renderDates();renderSlots();toggleAdmin();
+}
+function unblockDay(){
+    blockedDays=blockedDays.filter(d=>d!==document.getElementById('admDate').value);
+    saveData();renderDates();renderSlots();toggleAdmin();
+}
+
+// Старт
+init();
 </script>
 </body>
 </html>
