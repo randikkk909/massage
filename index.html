@@ -27,7 +27,7 @@
     <h1>massage <span>studio</span></h1>
     <div id="loginForm">
         <a class="tg-btn" href="https://t.me/MassageLobnya_bot?start=web" target="_blank">📱 Войти через Telegram</a>
-        <div class="info">Нажмите кнопку → откроется бот → нажмите <b>«Войти на сайт»</b> → вы автоматически авторизуетесь</div>
+        <div class="info">Нажмите кнопку → откроется бот → нажмите <b>«Войти на сайт»</b> → вы авторизуетесь</div>
         <div class="divider">или введите код</div>
         <input type="text" id="code" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
         <button class="btn" onclick="login()">Войти по коду</button>
@@ -42,24 +42,35 @@
 <script>
 var API='https://tgweb.bebraila5990d.workers.dev';
 
-// Проверяем данные из URL (от бота)
-var p=new URLSearchParams(window.location.search);
-if(p.get('user')){
-    var u=JSON.parse(decodeURIComponent(p.get('user')));
-    localStorage.setItem('muser',JSON.stringify(u));
-    window.history.replaceState({},'',window.location.pathname);
-    showUser(u);
-}
-
-// Проверяем localStorage
-var s=localStorage.getItem('muser');
-if(s){showUser(JSON.parse(s))}
+// СНАЧАЛА проверяем URL, ПОТОМ localStorage
+(function(){
+    var p=new URLSearchParams(window.location.search);
+    if(p.get('user')){
+        try{
+            var u=JSON.parse(decodeURIComponent(p.get('user')));
+            localStorage.setItem('muser',JSON.stringify(u));
+            // Очищаем URL
+            window.history.replaceState({},'',window.location.pathname);
+            showUser(u);
+            return;
+        }catch(e){}
+    }
+    
+    var s=localStorage.getItem('muser');
+    if(s){
+        try{
+            var u=JSON.parse(s);
+            showUser(u);
+            return;
+        }catch(e){}
+    }
+})();
 
 function showUser(u){
     document.getElementById('loginForm').style.display='none';
     document.getElementById('loggedIn').style.display='block';
-    document.getElementById('ava').textContent=u.avatar;
-    document.getElementById('name').textContent=u.name;
+    document.getElementById('ava').textContent=u.avatar||'?';
+    document.getElementById('name').textContent=u.name||'Пользователь';
 }
 
 async function login(){
