@@ -62,7 +62,6 @@
         .selected-summary { font-size: 11px; color: var(--accent); text-align: center; margin-bottom: 8px; }
         .btn-wrap { margin-top: auto; padding-top: 8px; }
         .primary-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #b08968, #c9a07a); border: none; border-radius: 16px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .primary-btn:active { transform: scale(0.97); }
 
         .card { background: var(--surface2); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--border); }
         .card-row { display: flex; justify-content: space-between; align-items: center; }
@@ -73,7 +72,7 @@
         .cancel-btn { background: none; border: 1px solid #d4c4b0; color: #9b7b62; padding: 6px 12px; border-radius: 20px; font-size: 10px; cursor: pointer; }
 
         .review-card { background: var(--surface2); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--border); position: relative; }
-        .stars { color: #d4a76a; font-size: 14px; }
+        .stars { color: #d4a76a; }
         .stars-interactive { display: flex; gap: 2px; font-size: 24px; color: #e0d0bb; cursor: pointer; margin-bottom: 8px; }
         .stars-interactive .star.active { color: #d4a76a; }
         .review-form { background: var(--surface2); border-radius: 16px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border); }
@@ -85,20 +84,16 @@
         .bottom-nav { display: flex; border-top: 1px solid var(--border); padding: 6px 8px; gap: 2px; background: var(--surface); }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; font-size: 10px; color: var(--text2); cursor: pointer; border: none; background: transparent; border-radius: 12px; }
         .nav-item.active { color: var(--accent); font-weight: 600; background: rgba(176,137,104,0.06); }
-        .nav-item svg { width: 18px; height: 18px; }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        .modal-box { background: #fff; border-radius: 24px; padding: 28px 22px; text-align: center; max-width: 300px; width: 90%; animation: popIn 0.4s; }
-        @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
-        .modal-icon { width: 70px; height: 70px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: bounce 0.6s 0.1s both; }
-        @keyframes bounce { 0%{transform:scale(0)} 55%{transform:scale(1.2)} 100%{transform:scale(1)} }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-box { background: #fff; border-radius: 24px; padding: 28px 22px; text-align: center; max-width: 300px; width: 90%; }
+        .modal-icon { width: 60px; height: 60px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; }
         .modal-icon.success { background: #e8f0df; }
         .modal-icon.danger { background: #fbe9e0; }
-        .modal-title { font-size: 20px; font-weight: 600; color: #5e4e3e; margin-bottom: 6px; }
-        .modal-text { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+        .modal-title { font-size: 18px; font-weight: 600; color: #5e4e3e; margin-bottom: 6px; }
+        .modal-text { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
         .modal-btns { display: flex; gap: 8px; margin-top: 14px; }
-        .modal-btn { flex: 1; padding: 12px; border-radius: 24px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+        .modal-btn { flex: 1; padding: 10px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
         .modal-btn.primary { background: var(--accent); color: #fff; }
         .modal-btn.secondary { background: var(--surface2); color: var(--text); }
         .modal-btn.danger { background: var(--danger); color: #fff; }
@@ -119,9 +114,7 @@
     </style>
 </head>
 <body>
-<div class="app" id="app">
-    <!-- Контент грузится динамически -->
-</div>
+<div id="app" class="app"></div>
 
 <script>
 // ==================== ДАННЫЕ ====================
@@ -133,29 +126,29 @@ const SERVICES = [
     { id: 'back30', name: 'Массаж спины', duration: '30 мин', durationMin: 30 },
 ];
 
-function genSlots() { const s=[]; for(let h=9;h<=21;h++)for(let m=0;m<60;m+=15){if(h===21&&m>0)break;s.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)} return s; }
-const ALL_SLOTS=genSlots(), WORK_END=21*60;
+function genSlots(){const s=[];for(let h=9;h<=21;h++)for(let m=0;m<60;m+=15){if(h===21&&m>0)break;s.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)}return s}
+const ALL_SLOTS=genSlots(),WORK_END=21*60;
 const API='https://tgweb.bebraila5990d.workers.dev';
 
-let currentUser=null, appointments=[], reviews=[], blockedSlots=[], blockedDays=[];
-let selService=null, selDate=null, selTime=null, reviewRating=0;
+let currentUser=null,appointments=[],reviews=[],blockedSlots=[],blockedDays=[];
+let selService=null,selDate=null,selTime=null,reviewRating=0;
 
-// ==================== АВТОРИЗАЦИЯ ====================
-function init(){
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+(function init(){
     const p=new URLSearchParams(window.location.search);
     if(p.get('user')){
         try{
             const u=JSON.parse(decodeURIComponent(p.get('user')));
-            if(!u.avatar||u.avatar==='�') u.avatar='👤';
+            if(!u.avatar||u.avatar==='�')u.avatar='👤';
             localStorage.setItem('muser',JSON.stringify(u));
             window.history.replaceState({},'',window.location.pathname);
-            currentUser=u; loadData(); return;
+            currentUser=u;loadData();return;
         }catch(e){}
     }
     const s=localStorage.getItem('muser');
-    if(s){ try{ currentUser=JSON.parse(s); loadData(); return; }catch(e){} }
+    if(s){try{currentUser=JSON.parse(s);loadData();return}catch(e){}}
     showAuth();
-}
+})();
 
 function showAuth(){
     document.getElementById('app').innerHTML=`
@@ -165,9 +158,10 @@ function showAuth(){
             <a class="tg-login-btn" href="https://t.me/MassageLobnya_bot?start=web" target="_blank">📱 Войти через Telegram</a>
             <p style="font-size:12px;color:#8b7b6b">или введите код</p>
             <input type="text" class="auth-input" id="authCode" maxlength="6" placeholder="000000" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-            <button class="auth-btn" onclick="loginWithCode()">Войти</button>
+            <button class="auth-btn" id="authBtn">Войти</button>
             <div id="authErr" style="color:#c44;font-size:12px"></div>
         </div>`;
+    document.getElementById('authBtn').onclick=loginWithCode;
 }
 
 async function loginWithCode(){
@@ -177,15 +171,13 @@ async function loginWithCode(){
         const r=await fetch(API+'/check?code='+c);
         const d=await r.json();
         if(d.ok){currentUser=d.user;localStorage.setItem('muser',JSON.stringify(d.user));loadData()}
-        else document.getElementById('authErr').textContent='Неверный код'
+        else document.getElementById('authErr').textContent='Неверный код';
     }catch(e){document.getElementById('authErr').textContent='Ошибка'}
 }
 
-function logout(){
-    localStorage.removeItem('muser');currentUser=null;showAuth();
-}
+function logout(){localStorage.removeItem('muser');currentUser=null;showAuth();}
 
-// ==================== ЗАГРУЗКА ДАННЫХ ====================
+// ==================== ЗАГРУЗКА ====================
 function loadData(){
     const key=currentUser.id;
     appointments=JSON.parse(localStorage.getItem('appts_'+key)||'[]');
@@ -204,8 +196,6 @@ function saveData(){
 }
 
 // ==================== РЕНДЕР ====================
-let currentScreen='booking';
-
 function renderApp(){
     document.getElementById('app').innerHTML=`
         <div class="header">
@@ -213,7 +203,7 @@ function renderApp(){
             <div class="user-bar">
                 <div class="user-avatar">${currentUser.avatar||'👤'}</div>
                 <span>${currentUser.name}</span>
-                <span class="logout-link" onclick="logout()">выйти</span>
+                <span class="logout-link" id="logoutBtn">выйти</span>
             </div>
         </div>
         <div class="screen active" id="bookingScreen">
@@ -224,8 +214,8 @@ function renderApp(){
             <h2>Время</h2>
             <div id="timeContainer" class="time-grid"></div>
             <div id="selectedSummary" class="selected-summary"></div>
-            <div class="btn-wrap"><button class="primary-btn" onclick="book()">Записаться</button></div>
-            <button class="admin-toggle" onclick="toggleAdmin()">🔑 Админ</button>
+            <div class="btn-wrap"><button class="primary-btn" id="bookBtn">Записаться</button></div>
+            <button class="admin-toggle" id="adminToggle">🔑 Админ</button>
             <div id="adminPanel" style="display:none"></div>
         </div>
         <div class="screen" id="appointmentsScreen">
@@ -237,31 +227,54 @@ function renderApp(){
             <div class="review-form" id="reviewForm">
                 <div style="font-weight:500;font-size:13px;margin-bottom:6px">Оставить отзыв</div>
                 <div class="stars-interactive" id="starRating">
-                    ${[1,2,3,4,5].map(i=>`<span class="star" data-star="${i}" onclick="setStars(${i})">★</span>`).join('')}
+                    <span class="star" data-star="1">★</span>
+                    <span class="star" data-star="2">★</span>
+                    <span class="star" data-star="3">★</span>
+                    <span class="star" data-star="4">★</span>
+                    <span class="star" data-star="5">★</span>
                 </div>
                 <input type="text" id="reviewAuthor" placeholder="Ваше имя" maxlength="30">
                 <textarea id="reviewText" placeholder="Поделитесь впечатлениями..." maxlength="500"></textarea>
-                <button class="submit-review-btn" onclick="submitReview()">Отправить отзыв</button>
+                <button class="submit-review-btn" id="submitReviewBtn">Отправить отзыв</button>
                 <div id="reviewLimitMsg" style="font-size:10px;color:var(--text2);text-align:center;margin-top:6px"></div>
             </div>
             <div id="reviewsList"></div>
         </div>
         <div class="bottom-nav">
-            <button class="nav-item active" data-screen="booking" onclick="switchScreen('booking')">📅 Запись</button>
-            <button class="nav-item" data-screen="appointments" onclick="switchScreen('appointments')">📋 Мои записи</button>
-            <button class="nav-item" data-screen="reviews" onclick="switchScreen('reviews')">💬 Отзывы</button>
+            <button class="nav-item active" data-screen="booking" id="navBooking">📅 Запись</button>
+            <button class="nav-item" data-screen="appointments" id="navAppt">📋 Мои записи</button>
+            <button class="nav-item" data-screen="reviews" id="navReviews">💬 Отзывы</button>
         </div>`;
-    switchScreen('booking');
-    renderServices(); renderDates(); renderSlots(); renderAppointments(); renderReviews(); updateSummary();
+
+    // Привязываем обработчики
+    document.getElementById('logoutBtn').onclick=logout;
+    document.getElementById('bookBtn').onclick=book;
+    document.getElementById('adminToggle').onclick=toggleAdmin;
+    document.getElementById('submitReviewBtn').onclick=submitReview;
+    document.getElementById('navBooking').onclick=()=>switchScreen('booking');
+    document.getElementById('navAppt').onclick=()=>switchScreen('appointments');
+    document.getElementById('navReviews').onclick=()=>switchScreen('reviews');
+
+    // Звёзды
+    document.querySelectorAll('#starRating .star').forEach(s=>{
+        s.onclick=()=>{reviewRating=+s.dataset.star;updateStars()};
+    });
+
+    // Рендерим всё
+    renderServices();renderDates();renderSlots();renderAppointments();renderReviews();updateSummary();
 }
 
 function switchScreen(id){
-    currentScreen=id;
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id+'Screen').classList.add('active');
     document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
 }
 
+function updateStars(){
+    document.querySelectorAll('#starRating .star').forEach((s,i)=>s.classList.toggle('active',i<reviewRating));
+}
+
+// ==================== КАЛЕНДАРЬ И СЛОТЫ ====================
 function getDates(){const d=[],n=new Date();let s=(n.getHours()*60+n.getMinutes())>=WORK_END?1:0;for(let i=s;i<s+7;i++){const t=new Date(n);t.setDate(n.getDate()+i);d.push(t)}return d}
 function fmt(d){return d.toISOString().split('T')[0]}
 function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m}
@@ -270,13 +283,28 @@ function isPast(a){const[h,m]=a.time.split(':').map(Number),d=new Date(a.date);d
 function isTimePast(ds,ts){if(ds!==fmt(new Date()))return!1;return t2m(ts)<=new Date().getHours()*60+new Date().getMinutes()}
 
 function renderServices(){
-    const c=document.getElementById('servicesContainer');
-    c.innerHTML=SERVICES.map(s=>`<div class="service-card ${selService?.id===s.id?'selected':''}" onclick="selService=SERVICES.find(x=>x.id==='${s.id}');selTime=null;renderServices();renderSlots();updateSummary()"><div><div class="service-name">${s.name}</div><div class="service-duration">${s.duration}</div></div><div class="radio-circle"></div></div>`).join('');
+    document.getElementById('servicesContainer').innerHTML=SERVICES.map(s=>{
+        const sel=selService&&selService.id===s.id?' selected':'';
+        return`<div class="service-card${sel}" data-id="${s.id}"><div><div class="service-name">${s.name}</div><div class="service-duration">${s.duration}</div></div><div class="radio-circle"></div></div>`;
+    }).join('');
+    document.querySelectorAll('.service-card').forEach(c=>c.onclick=()=>{
+        selService=SERVICES.find(s=>s.id===c.dataset.id);selTime=null;
+        renderServices();renderSlots();updateSummary();
+    });
 }
 
 function renderDates(){
-    const c=document.getElementById('dateContainer'),dates=getDates(),bs=new Set(blockedDays);
-    c.innerHTML=dates.map(d=>{const ds=fmt(d);return`<div class="date-btn ${ds===selDate?'selected':''} ${bs.has(ds)?'blocked':''} ${ds<fmt(new Date())?'past':''}" onclick="selDate='${ds}';selTime=null;renderDates();renderSlots();updateSummary()">${d.getDate()}<br><small>${d.toLocaleDateString('ru',{month:'short'})}</small></div>`}).join('');
+    const dates=getDates(),bs=new Set(blockedDays);
+    document.getElementById('dateContainer').innerHTML=dates.map(d=>{
+        const ds=fmt(d);
+        let cls=ds===selDate?'selected':'';
+        if(bs.has(ds))cls+=' blocked';
+        if(ds<fmt(new Date()))cls+=' past';
+        return`<div class="date-btn ${cls}" data-date="${ds}">${d.getDate()}<br><small>${d.toLocaleDateString('ru',{month:'short'})}</small></div>`;
+    }).join('');
+    document.querySelectorAll('.date-btn:not(.blocked):not(.past)').forEach(b=>b.onclick=()=>{
+        selDate=b.dataset.date;selTime=null;renderDates();renderSlots();updateSummary();
+    });
 }
 
 function renderSlots(){
@@ -288,8 +316,11 @@ function renderSlots(){
         const ab=bs.has(t),oob=t2m(t)+dm>WORK_END,past=isTimePast(selDate,t);
         const ap=appointments.some(a=>{if(a.date!==selDate)return!1;const as=t2m(a.time);return t2m(t)<(as+a.service.durationMin+15)&&(t2m(t)+dm+15)>as});
         const bl=ab||ap||oob||past,sel=t===selTime&&!bl;
-        return`<div class="time-slot ${sel?'selected':''} ${ab||oob?'blocked':''} ${past?'past-time':''} ${ap&&!ab&&!past?'booked':''}" onclick="if(!${bl}){selTime='${t}';renderSlots();updateSummary()}">${t}</div>`;
+        return`<div class="time-slot ${sel?'selected':''} ${ab||oob?'blocked':''} ${past?'past-time':''} ${ap&&!ab&&!past?'booked':''}" data-time="${t}">${t}</div>`;
     }).join('');
+    document.querySelectorAll('.time-slot:not(.blocked):not(.booked):not(.past-time)').forEach(s=>s.onclick=()=>{
+        selTime=s.dataset.time;renderSlots();updateSummary();
+    });
 }
 
 function updateSummary(){
@@ -300,47 +331,45 @@ function updateSummary(){
     document.getElementById('selectedSummary').textContent=p.join(' | ');
 }
 
-function showModal(icon,cls,title,details,buttons){
-    const old=document.querySelector('.modal-overlay');if(old)old.remove();
-    const ov=document.createElement('div');ov.className='modal-overlay';
-    ov.innerHTML=`<div class="modal-box"><div class="modal-icon ${cls}">${icon}</div><div class="modal-title">${title}</div>${details.map(d=>`<div class="modal-text">${d}</div>`).join('')}<div class="modal-btns">${buttons.map(b=>`<button class="modal-btn ${b.cls}" data-action="${b.action}">${b.text}</button>`).join('')}</div></div>`;
-    document.body.appendChild(ov);
-    const close=()=>{ov.style.opacity='0';ov.style.transition='opacity 0.2s';setTimeout(()=>ov.remove(),200)};
-    ov.querySelectorAll('.modal-btn').forEach(b=>b.addEventListener('click',()=>{
-        if(b.dataset.action==='close')close();
-        if(b.dataset.action==='confirm'){const def=buttons.find(x=>x.action==='confirm');if(def?.cb){close();setTimeout(def.cb,250)}}
-    }));
-    ov.addEventListener('click',e=>{if(e.target===ov)close()});
-}
-
+// ==================== БРОНИРОВАНИЕ ====================
 function book(){
     if(!selService)return alert('Выберите массаж');
     if(!selDate)return alert('Выберите дату');
     if(!selTime)return alert('Выберите время');
     appointments.push({id:Date.now(),service:selService,date:selDate,time:selTime});
     saveData();
-    showModal('✅','success','Вы записаны!',[selService.name+' · '+selService.duration,fDate(selDate)+' в '+selTime],[{text:'Отлично',action:'close',cls:'primary'}]);
+    showModal('✅','success','Вы записаны!',[selService.name+' · '+selService.duration,fDate(selDate)+' в '+selTime],[{text:'Ок',cls:'primary'}]);
     selTime=null;renderSlots();updateSummary();renderAppointments();
 }
 
+function showModal(icon,cls,title,details,buttons){
+    const old=document.querySelector('.modal-overlay');if(old)old.remove();
+    const ov=document.createElement('div');ov.className='modal-overlay';
+    ov.innerHTML=`<div class="modal-box"><div class="modal-icon ${cls}">${icon}</div><div class="modal-title">${title}</div>${details.map(d=>`<div class="modal-text">${d}</div>`).join('')}<div class="modal-btns">${buttons.map(b=>`<button class="modal-btn ${b.cls}" data-action="${b.action||'close'}">${b.text}</button>`).join('')}</div></div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('.modal-btn').onclick=()=>{ov.style.opacity='0';setTimeout(()=>ov.remove(),200)};
+    ov.addEventListener('click',e=>{if(e.target===ov){ov.style.opacity='0';setTimeout(()=>ov.remove(),200)}});
+}
+
+// ==================== ЗАПИСИ ====================
 function renderAppointments(){
     const c=document.getElementById('appointmentsList');
-    const my=appointments;
-    if(!my.length){c.innerHTML='<div class="empty-state">У вас пока нет записей</div>';return}
-    const s=my.sort((a,b)=>isPast(a)&&!isPast(b)?1:!isPast(a)&&isPast(b)?-1:(a.date+a.time).localeCompare(b.date+b.time));
-    c.innerHTML=s.map(a=>`<div class="card"><div class="card-row"><div><div class="card-service">${a.service.name} · ${a.service.duration}</div><div><strong>${fDate(a.date)}</strong> · ${a.time}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="card-status ${isPast(a)?'past':'upcoming'}">${isPast(a)?'Завершён':'Ожидается'}</span>${!isPast(a)?`<button class="cancel-btn" onclick="cancelAppt(${a.id})">Отменить</button>`:''}</div></div></div>`).join('');
+    if(!appointments.length){c.innerHTML='<div class="empty-state">У вас пока нет записей</div>';return}
+    const s=[...appointments].sort((a,b)=>(isPast(a)?1:0)-(isPast(b)?1:0)||(a.date+a.time).localeCompare(b.date+b.time));
+    c.innerHTML=s.map(a=>`<div class="card"><div class="card-row"><div><div class="card-service">${a.service.name} · ${a.service.duration}</div><div style="font-size:13px"><strong>${fDate(a.date)}</strong> · ${a.time}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="card-status ${isPast(a)?'past':'upcoming'}">${isPast(a)?'Завершён':'Ожидается'}</span>${!isPast(a)?`<button class="cancel-btn" data-id="${a.id}">Отменить</button>`:''}</div></div></div>`).join('');
+    document.querySelectorAll('.cancel-btn').forEach(b=>b.onclick=()=>cancelAppt(+b.dataset.id));
 }
 
 function cancelAppt(id){
     const a=appointments.find(x=>x.id===id);if(!a)return;
-    showModal('❌','danger','Отменить запись?',[a.service.name,fDate(a.date)+' в '+a.time],[
-        {text:'Нет',action:'close',cls:'secondary'},
-        {text:'Да',action:'confirm',cls:'danger',cb:()=>{appointments=appointments.filter(x=>x.id!==id);saveData();renderAppointments();updateReviewForm()}}
-    ]);
+    const ov=document.createElement('div');ov.className='modal-overlay';
+    ov.innerHTML=`<div class="modal-box"><div class="modal-icon danger">❌</div><div class="modal-title">Отменить запись?</div><div class="modal-text">${a.service.name}</div><div class="modal-text">${fDate(a.date)} в ${a.time}</div><div class="modal-btns"><button class="modal-btn secondary" id="noBtn">Нет</button><button class="modal-btn danger" id="yesBtn">Да</button></div></div>`;
+    document.body.appendChild(ov);
+    document.getElementById('noBtn').onclick=()=>{ov.remove()};
+    document.getElementById('yesBtn').onclick=()=>{appointments=appointments.filter(x=>x.id!==id);saveData();ov.remove();renderAppointments();updateReviewForm()};
 }
 
-function setStars(n){reviewRating=n;document.querySelectorAll('#starRating .star').forEach((s,i)=>s.classList.toggle('active',i<n))}
-
+// ==================== ОТЗЫВЫ ====================
 function submitReview(){
     if(reviews.some(r=>r.userId===currentUser.id))return alert('Вы уже оставили отзыв');
     if(!appointments.some(a=>isPast(a)))return alert('Посетите массаж, чтобы оставить отзыв');
@@ -351,14 +380,15 @@ function submitReview(){
     reviews.push({id:Date.now(),userId:currentUser.id,author,text,stars:reviewRating,date:new Date().toLocaleDateString('ru',{day:'numeric',month:'long',year:'numeric'})});
     saveData();
     document.getElementById('reviewAuthor').value='';document.getElementById('reviewText').value='';reviewRating=0;
-    document.querySelectorAll('#starRating .star').forEach(s=>s.classList.remove('active'));
+    updateStars();
     renderReviews();
 }
 
 function renderReviews(){
     const c=document.getElementById('reviewsList');
     if(!reviews.length){c.innerHTML='<div class="empty-state">Отзывов пока нет</div>';return}
-    c.innerHTML=reviews.slice().reverse().map(r=>`<div class="review-card">${r.userId===currentUser?.id?`<span style="position:absolute;top:8px;right:10px;cursor:pointer;color:#c4b0a0;font-size:18px" onclick="reviews=reviews.filter(x=>x.id!==${r.id});saveData();renderReviews()">×</span>`:''}<div style="display:flex;justify-content:space-between"><strong style="color:#b08968;font-size:13px">${r.author}</strong><small style="color:#8b7b6b">${r.date}</small></div><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><div style="font-size:12px;margin-top:4px">${r.text}</div></div>`).join('');
+    c.innerHTML=reviews.slice().reverse().map(r=>`<div class="review-card">${r.userId===currentUser?.id?`<span style="position:absolute;top:8px;right:10px;cursor:pointer;font-size:18px" data-id="${r.id}">×</span>`:''}<div style="display:flex;justify-content:space-between"><strong style="color:#b08968;font-size:13px">${r.author}</strong><small style="color:#8b7b6b">${r.date}</small></div><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><div style="font-size:12px;margin-top:4px">${r.text}</div></div>`).join('');
+    document.querySelectorAll('.review-card span').forEach(s=>s.onclick=()=>{reviews=reviews.filter(r=>r.id!==+s.dataset.id);saveData();renderReviews();updateReviewForm()});
     updateReviewForm();
 }
 
@@ -370,29 +400,17 @@ function updateReviewForm(){
     else{f.classList.remove('disabled');m.textContent=''}
 }
 
+// ==================== АДМИНКА ====================
 function toggleAdmin(){
     const p=document.getElementById('adminPanel');
     if(p.style.display==='block'){p.style.display='none';return}
     const dates=getDates();
-    p.innerHTML=`<div class="admin-panel"><div style="font-weight:500;margin-bottom:8px">Управление</div><div class="admin-row"><select id="admDate">${dates.map(d=>`<option value="${fmt(d)}">${fDate(fmt(d))}</option>`).join('')}</select><select id="admTime">${ALL_SLOTS.map(t=>`<option value="${t}">${t}</option>`).join('')}</select><button class="mini-btn danger" onclick="blockSlot()">Блок слота</button></div><div class="admin-row"><button class="mini-btn danger" onclick="blockDay()">Блок дня</button><button class="mini-btn" onclick="unblockDay()">Разблок</button></div></div>`;
+    p.innerHTML=`<div class="admin-panel"><div style="font-weight:500;margin-bottom:8px">Управление</div><div class="admin-row"><select id="admDate">${dates.map(d=>`<option value="${fmt(d)}">${fDate(fmt(d))}</option>`).join('')}</select><select id="admTime">${ALL_SLOTS.map(t=>`<option value="${t}">${t}</option>`).join('')}</select><button class="mini-btn danger" id="blockSlotBtn">Блок слота</button></div><div class="admin-row"><button class="mini-btn danger" id="blockDayBtn">Блок дня</button><button class="mini-btn" id="unblockBtn">Разблок</button></div></div>`;
     p.style.display='block';
+    document.getElementById('blockSlotBtn').onclick=()=>{blockedSlots.push({date:document.getElementById('admDate').value,time:document.getElementById('admTime').value});saveData();renderSlots();toggleAdmin()};
+    document.getElementById('blockDayBtn').onclick=()=>{blockedDays.push(document.getElementById('admDate').value);saveData();renderDates();renderSlots();toggleAdmin()};
+    document.getElementById('unblockBtn').onclick=()=>{blockedDays=blockedDays.filter(d=>d!==document.getElementById('admDate').value);saveData();renderDates();renderSlots();toggleAdmin()};
 }
-
-function blockSlot(){
-    blockedSlots.push({date:document.getElementById('admDate').value,time:document.getElementById('admTime').value});
-    saveData();renderSlots();toggleAdmin();
-}
-function blockDay(){
-    blockedDays.push(document.getElementById('admDate').value);
-    saveData();renderDates();renderSlots();toggleAdmin();
-}
-function unblockDay(){
-    blockedDays=blockedDays.filter(d=>d!==document.getElementById('admDate').value);
-    saveData();renderDates();renderSlots();toggleAdmin();
-}
-
-// Старт
-init();
 </script>
 </body>
 </html>
