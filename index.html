@@ -87,9 +87,8 @@
 </div>
 
 <script>
-    const API = 'https://massage-bot.bebraila5990d.workers.dev';
+    const API = 'https://tgweb.bebraila5990d.workers.dev';
 
-    // Проверка при загрузке
     const saved = localStorage.getItem('mu');
     if (saved) showUser(JSON.parse(saved));
 
@@ -132,7 +131,6 @@
         document.getElementById('err').textContent = '';
     }
 
-    // Автосабмит при вводе 6 цифр
     document.getElementById('codeInput').addEventListener('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
         if (this.value.length === 6) setTimeout(login, 300);
