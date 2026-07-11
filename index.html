@@ -5,136 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Massage Studio</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: Arial, sans-serif;
-            background: #faf7f2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 380px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        h1 { font-size: 22px; color: #5e4e3e; margin-bottom: 10px; }
-        h1 span { color: #b08968; }
-        .step { display: none; }
-        .step.active { display: block; }
-        .code-input {
-            width: 100%; padding: 14px; border: 2px solid #e0d5c8;
-            border-radius: 12px; font-size: 22px; text-align: center;
-            letter-spacing: 6px; margin-bottom: 12px; outline: none;
-        }
-        .code-input:focus { border-color: #b08968; }
-        .btn {
-            width: 100%; padding: 14px; background: #b08968;
-            color: #fff; border: none; border-radius: 12px;
-            font-size: 14px; cursor: pointer; font-weight: bold;
-        }
-        .btn-tg { background: #2AABEE; margin-bottom: 15px; }
-        .msg { font-size: 13px; color: #8b7b6b; margin: 10px 0; }
-        .err { color: #c44; font-size: 12px; }
-        .info {
-            background: #f5f0ea; padding: 12px; border-radius: 10px;
-            font-size: 12px; color: #5e4e3e; margin: 15px 0;
-            text-align: left; line-height: 1.8;
-        }
-        .avatar {
-            width: 60px; height: 60px; border-radius: 50%;
-            background: #b08968; color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px; margin: 0 auto 15px;
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,sans-serif;background:#faf7f2;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;color:#3c3028}
+        .box{background:#fff;border-radius:20px;padding:30px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center}
+        h1{font-size:22px;font-weight:300;letter-spacing:2px;color:#5e4e3e;margin-bottom:20px;text-transform:uppercase}
+        h1 span{font-weight:600;color:#b08968}
+        .tg-btn{display:block;width:100%;padding:14px;background:#2AABEE;color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:bold;text-decoration:none;margin-bottom:15px;cursor:pointer}
+        input{width:100%;padding:14px;border:2px solid #e0d5c8;border-radius:12px;font-size:22px;text-align:center;letter-spacing:6px;margin-bottom:12px;outline:none;font-weight:bold}
+        input:focus{border-color:#b08968}
+        .btn{width:100%;padding:14px;background:#b08968;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:bold;cursor:pointer}
+        .btn:active{opacity:.8}
+        .msg{font-size:13px;color:#8b7b6b;margin:10px 0}
+        .err{color:#c44;font-size:12px;min-height:18px}
+        .info{background:#f5f0ea;padding:10px;border-radius:10px;font-size:12px;color:#5e4e3e;margin:12px 0;text-align:left;line-height:1.6}
+        .divider{display:flex;align-items:center;gap:10px;margin:15px 0;color:#8b7b6b;font-size:12px}
+        .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e0d5c8}
     </style>
 </head>
 <body>
-<div class="card">
+<div class="box">
     <h1>massage <span>studio</span></h1>
-
-    <div class="step active" id="step1">
-        <p class="msg">Войдите в аккаунт</p>
-        
-        <button class="btn btn-tg" onclick="window.open('https://t.me/MassageLobnya_bot','_blank')">
-            📱 Получить код в Telegram
-        </button>
-        
-        <div class="info">
-            <b>Как войти:</b><br>
-            1️⃣ Нажмите кнопку выше → откроется бот<br>
-            2️⃣ Нажмите <b>/start</b> в боте<br>
-            3️⃣ Бот пришлёт ваш код<br>
-            4️⃣ Введите код ниже
-        </div>
-        
-        <input type="text" class="code-input" id="codeInput" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="off">
-        <button class="btn" onclick="login()">Войти</button>
+    <div id="loginForm">
+        <a class="tg-btn" href="https://t.me/MassageLobnya_bot?start=web" target="_blank">📱 Войти через Telegram</a>
+        <div class="info">Нажмите кнопку → откроется бот → нажмите <b>«Войти на сайт»</b> → вы автоматически авторизуетесь</div>
+        <div class="divider">или введите код</div>
+        <input type="text" id="code" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <button class="btn" onclick="login()">Войти по коду</button>
         <div class="err" id="err"></div>
     </div>
-
-    <div class="step" id="step2">
-        <div class="avatar" id="ava"></div>
-        <p class="msg" id="okName"></p>
+    <div id="loggedIn" style="display:none">
+        <div style="width:60px;height:60px;border-radius:50%;background:#b08968;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 15px" id="ava"></div>
+        <p class="msg" id="name"></p>
         <button class="btn" onclick="logout()">Выйти</button>
     </div>
 </div>
-
 <script>
-    const API = 'https://tgweb.bebraila5990d.workers.dev';
+var API='https://tgweb.bebraila5990d.workers.dev';
 
-    const saved = localStorage.getItem('mu');
-    if (saved) showUser(JSON.parse(saved));
+// Проверяем данные из URL (от бота)
+var p=new URLSearchParams(window.location.search);
+if(p.get('user')){
+    var u=JSON.parse(decodeURIComponent(p.get('user')));
+    localStorage.setItem('muser',JSON.stringify(u));
+    window.history.replaceState({},'',window.location.pathname);
+    showUser(u);
+}
 
-    async function login() {
-        const code = document.getElementById('codeInput').value.trim();
-        if (!code || code.length !== 6) {
-            document.getElementById('err').textContent = 'Введите 6 цифр';
-            return;
-        }
+// Проверяем localStorage
+var s=localStorage.getItem('muser');
+if(s){showUser(JSON.parse(s))}
 
-        document.getElementById('err').textContent = 'Проверяем...';
+function showUser(u){
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('loggedIn').style.display='block';
+    document.getElementById('ava').textContent=u.avatar;
+    document.getElementById('name').textContent=u.name;
+}
 
-        try {
-            const res = await fetch(API + '/login?code=' + code);
-            const data = await res.json();
-            
-            if (data.ok) {
-                localStorage.setItem('mu', JSON.stringify(data.user));
-                showUser(data.user);
-            } else {
-                document.getElementById('err').textContent = 'Неверный код. Получите код в боте.';
-            }
-        } catch(e) {
-            document.getElementById('err').textContent = 'Ошибка соединения';
-        }
-    }
+async function login(){
+    var c=document.getElementById('code').value.trim();
+    if(!c||c.length!==6){document.getElementById('err').textContent='Введите 6 цифр';return}
+    document.getElementById('err').textContent='Проверяем...';
+    try{
+        var r=await fetch(API+'/check?code='+c);
+        var d=await r.json();
+        if(d.ok){localStorage.setItem('muser',JSON.stringify(d.user));showUser(d.user)}
+        else document.getElementById('err').textContent='Неверный код'
+    }catch(e){document.getElementById('err').textContent='Ошибка соединения'}
+}
 
-    function showUser(u) {
-        document.getElementById('step1').classList.remove('active');
-        document.getElementById('step2').classList.add('active');
-        document.getElementById('ava').textContent = u.avatar;
-        document.getElementById('okName').textContent = u.name;
-    }
-
-    function logout() {
-        localStorage.removeItem('mu');
-        document.getElementById('step2').classList.remove('active');
-        document.getElementById('step1').classList.add('active');
-        document.getElementById('codeInput').value = '';
-        document.getElementById('err').textContent = '';
-    }
-
-    document.getElementById('codeInput').addEventListener('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
-        if (this.value.length === 6) setTimeout(login, 300);
-    });
+function logout(){
+    localStorage.removeItem('muser');
+    document.getElementById('loginForm').style.display='block';
+    document.getElementById('loggedIn').style.display='none';
+    document.getElementById('code').value='';
+    document.getElementById('err').textContent='';
+}
 </script>
 </body>
 </html>
