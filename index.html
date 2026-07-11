@@ -444,10 +444,12 @@
         if(!selService){c.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text2);padding:16px">Сначала выберите вид массажа</div>';return}
         const bs=new Set(blockedSlots.filter(s=>s.date===selDate).map(s=>s.time)),dm=selService.durationMin;
         c.innerHTML=ALL_SLOTS.map(t=>{
-            const ab=bs.has(t),oob=t2m(t)+dm>WORK_END,past=isTimePast(selDate,t);
+            const ab=bs.has(t);
+            // Убрали проверку out of bounds — теперь последний слот 21:00 всегда доступен
+            const past=isTimePast(selDate,t);
             const ap=appointments.some(a=>{if(a.date!==selDate)return!1;const as=t2m(a.time);return t2m(t)<(as+a.service.durationMin+15)&&(t2m(t)+dm+15)>as});
-            const bl=ab||ap||oob||past,sel=t===selTime&&!bl;
-            return`<div class="time-slot${sel?' selected':''}${ab||oob?' blocked':''}${past?' past-time':''}${ap&&!ab&&!past?' booked':''}" data-time="${t}">${t}</div>`;
+            const bl=ab||ap||past,sel=t===selTime&&!bl;
+            return`<div class="time-slot${sel?' selected':''}${ab?' blocked':''}${past?' past-time':''}${ap&&!ab&&!past?' booked':''}" data-time="${t}">${t}</div>`;
         }).join('');
         document.querySelectorAll('.time-slot:not(.blocked):not(.booked):not(.past-time)').forEach(s=>s.onclick=()=>{selTime=s.dataset.time;renderSlots();updateSummary();scrollTo(document.getElementById('bw'))});
     }
@@ -462,18 +464,17 @@
         document.getElementById('sum').textContent=p.join(' | ');
     }
 
-    async function sendTelegramNotification(userId, message) {
+    // Функция отправки уведомления в Telegram
+    async function sendTG(chatId, text) {
         try {
             await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: userId,
-                    text: message,
-                    parse_mode: 'HTML'
-                })
+                body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'HTML' })
             });
-        } catch(e) {}
+        } catch(e) {
+            console.error('Ошибка отправки в TG:', e);
+        }
     }
 
     function showSuccess(svc,date,time){
@@ -493,20 +494,18 @@
         appointments.push({id:Date.now(),service:selService,date:selDate,time:selTime});
         saveData();
         showSuccess(selService,selDate,selTime);
-        
+
         // Отправляем уведомление в Telegram
-        if(currentUser && currentUser.id) {
-            sendTelegramNotification(currentUser.id, 
-                `✅ <b>Запись подтверждена!</b>\n\n` +
-                `💆 ${selService.name}\n` +
-                `📅 ${fDate(selDate)}\n` +
-                `⏰ ${selTime}\n` +
-                `🕐 Длительность: ${selService.duration}\n\n` +
-                `📍 г. Лобня, Катюшки 58\n` +
-                `📞 +7 968 513 2011`
-            );
-        }
-        
+        sendTG(currentUser.id, 
+            `✅ <b>Запись подтверждена!</b>\n\n` +
+            `💆 Услуга: ${selService.name}\n` +
+            `📅 Дата: ${fDate(selDate)}\n` +
+            `⏰ Время: ${selTime}\n` +
+            `🕐 Длительность: ${selService.duration}\n\n` +
+            `📍 г. Лобня, Катюшки 58\n` +
+            `📞 +7 968 513 2011`
+        );
+
         selTime=null;renderSlots();updateSummary();renderAppointments();
     }
 
@@ -528,10 +527,7 @@
         document.getElementById('noBtn').onclick=cl;
         document.getElementById('yesBtn').onclick=()=>{
             appointments=appointments.filter(x=>x.id!==id);saveData();cl();
-            // Уведомление об отмене
-            if(currentUser && currentUser.id) {
-                sendTelegramNotification(currentUser.id, `❌ <b>Запись отменена</b>\n\n${a.service.name}\n${fDate(a.date)} в ${a.time}`);
-            }
+            sendTG(currentUser.id, `❌ <b>Запись отменена</b>\n\n${a.service.name}\n${fDate(a.date)} в ${a.time}`);
             setTimeout(()=>{renderAppointments();updateReviewForm()},300);
         };
     }
