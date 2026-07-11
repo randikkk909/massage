@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MASSAGE · студия</title>
+    <title>MASSAGE LOBNYA</title>
     <style>
         :root {
             --bg: #faf7f3; --surface: #ffffff; --surface2: #f5f0ea;
@@ -139,21 +139,24 @@ let selService=null,selDate=null,selTime=null,reviewRating=0;
     if(p.get('user')){
         try{
             const u=JSON.parse(decodeURIComponent(p.get('user')));
-            if(!u.avatar||u.avatar==='�')u.avatar='👤';
+            if(!u.avatar||u.avatar==='�'||u.avatar==='\\ud83d')u.avatar='👤';
             localStorage.setItem('muser',JSON.stringify(u));
             window.history.replaceState({},'',window.location.pathname);
-            currentUser=u;loadData();return;
+            currentUser=u;
         }catch(e){}
     }
-    const s=localStorage.getItem('muser');
-    if(s){try{currentUser=JSON.parse(s);loadData();return}catch(e){}}
-    showAuth();
+    if(!currentUser){
+        const s=localStorage.getItem('muser');
+        if(s){try{currentUser=JSON.parse(s)}catch(e){}}
+    }
+    if(!currentUser){showAuth();return}
+    loadData();
 })();
 
 function showAuth(){
     document.getElementById('app').innerHTML=`
         <div class="auth-container">
-            <div class="logo" style="font-size:22px">massage <span style="color:#b08968;font-weight:600">studio</span></div>
+            <div class="logo" style="font-size:22px">massage <span style="color:#b08968;font-weight:600">lobnya</span></div>
             <p style="font-size:13px;color:#8b7b6b">Войдите через Telegram</p>
             <a class="tg-login-btn" href="https://t.me/MassageLobnya_bot?start=web" target="_blank">📱 Войти через Telegram</a>
             <p style="font-size:12px;color:#8b7b6b">или введите код</p>
@@ -199,10 +202,10 @@ function saveData(){
 function renderApp(){
     document.getElementById('app').innerHTML=`
         <div class="header">
-            <div class="logo">massage <span>studio</span></div>
+            <div class="logo">massage <span>lobnya</span></div>
             <div class="user-bar">
                 <div class="user-avatar">${currentUser.avatar||'👤'}</div>
-                <span>${currentUser.name}</span>
+                <span>${currentUser.name||'Пользователь'}</span>
                 <span class="logout-link" id="logoutBtn">выйти</span>
             </div>
         </div>
@@ -246,7 +249,6 @@ function renderApp(){
             <button class="nav-item" data-screen="reviews" id="navReviews">💬 Отзывы</button>
         </div>`;
 
-    // Привязываем обработчики
     document.getElementById('logoutBtn').onclick=logout;
     document.getElementById('bookBtn').onclick=book;
     document.getElementById('adminToggle').onclick=toggleAdmin;
@@ -255,12 +257,10 @@ function renderApp(){
     document.getElementById('navAppt').onclick=()=>switchScreen('appointments');
     document.getElementById('navReviews').onclick=()=>switchScreen('reviews');
 
-    // Звёзды
     document.querySelectorAll('#starRating .star').forEach(s=>{
         s.onclick=()=>{reviewRating=+s.dataset.star;updateStars()};
     });
 
-    // Рендерим всё
     renderServices();renderDates();renderSlots();renderAppointments();renderReviews();updateSummary();
 }
 
@@ -274,7 +274,6 @@ function updateStars(){
     document.querySelectorAll('#starRating .star').forEach((s,i)=>s.classList.toggle('active',i<reviewRating));
 }
 
-// ==================== КАЛЕНДАРЬ И СЛОТЫ ====================
 function getDates(){const d=[],n=new Date();let s=(n.getHours()*60+n.getMinutes())>=WORK_END?1:0;for(let i=s;i<s+7;i++){const t=new Date(n);t.setDate(n.getDate()+i);d.push(t)}return d}
 function fmt(d){return d.toISOString().split('T')[0]}
 function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m}
@@ -331,7 +330,6 @@ function updateSummary(){
     document.getElementById('selectedSummary').textContent=p.join(' | ');
 }
 
-// ==================== БРОНИРОВАНИЕ ====================
 function book(){
     if(!selService)return alert('Выберите массаж');
     if(!selDate)return alert('Выберите дату');
@@ -351,7 +349,6 @@ function showModal(icon,cls,title,details,buttons){
     ov.addEventListener('click',e=>{if(e.target===ov){ov.style.opacity='0';setTimeout(()=>ov.remove(),200)}});
 }
 
-// ==================== ЗАПИСИ ====================
 function renderAppointments(){
     const c=document.getElementById('appointmentsList');
     if(!appointments.length){c.innerHTML='<div class="empty-state">У вас пока нет записей</div>';return}
@@ -369,7 +366,6 @@ function cancelAppt(id){
     document.getElementById('yesBtn').onclick=()=>{appointments=appointments.filter(x=>x.id!==id);saveData();ov.remove();renderAppointments();updateReviewForm()};
 }
 
-// ==================== ОТЗЫВЫ ====================
 function submitReview(){
     if(reviews.some(r=>r.userId===currentUser.id))return alert('Вы уже оставили отзыв');
     if(!appointments.some(a=>isPast(a)))return alert('Посетите массаж, чтобы оставить отзыв');
@@ -400,7 +396,6 @@ function updateReviewForm(){
     else{f.classList.remove('disabled');m.textContent=''}
 }
 
-// ==================== АДМИНКА ====================
 function toggleAdmin(){
     const p=document.getElementById('adminPanel');
     if(p.style.display==='block'){p.style.display='none';return}
