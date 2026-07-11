@@ -2,754 +2,157 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MASSAGE · студия</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Massage Studio</title>
     <style>
-        :root {
-            --bg: #faf7f3; --surface: #ffffff; --surface2: #f5f0ea;
-            --text: #3c3028; --text2: #8b7b6b; --accent: #b08968;
-            --accent2: #cdb19c; --border: #e8dfd3; --danger: #c4956a;
-            --success: #8faa7b; --tg: #2AABEE;
-            --radius: 20px; --shadow: 0 4px 24px rgba(60,40,20,0.06);
-            --transition: 0.3s cubic-bezier(0.25,0.8,0.25,1.2);
-        }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Montserrat', -apple-system, sans-serif;
-            background: linear-gradient(135deg, #f5efe8 0%, #faf7f3 50%, #f0e8dd 100%);
-            min-height: 100vh; display:flex; justify-content:center; align-items:center;
-            padding: 12px; color: var(--text);
-            -webkit-tap-highlight-color: transparent; user-select: none;
+            font-family: Arial, sans-serif;
+            background: #faf7f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .app {
-            width: 100%; max-width: 420px; background: var(--surface);
-            border-radius: 32px;
-            box-shadow: 0 24px 48px rgba(60,30,10,0.1), 0 8px 16px rgba(0,0,0,0.04);
-            overflow: hidden; display: flex; flex-direction: column;
-            height: 780px; max-height: 92vh;
-            border: 1px solid var(--border); position: relative;
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
         }
-        .header {
-            padding: 22px 20px 16px; text-align: center;
-            background: linear-gradient(180deg, #fdfaf6 0%, #faf5ef 100%);
-            border-bottom: 1px solid var(--border); position: relative; flex-shrink: 0;
+        h1 { font-size: 22px; color: #5e4e3e; margin-bottom: 20px; }
+        h1 span { color: #b08968; }
+        .tg-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px;
+            background: #2AABEE;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
         }
-        .header::after {
-            content: ''; position: absolute; bottom: -1px; left: 20%; right: 20%;
-            height: 1px; background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-        }
-        .logo { font-size: 26px; font-weight: 300; letter-spacing: 3px; color: #5e4e3e; text-transform: uppercase; }
-        .logo span { font-weight: 600; color: var(--accent); letter-spacing: 1px; }
-        .user-bar {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            margin-top: 8px; font-size: 11px; color: var(--text2);
-        }
-        .user-avatar {
-            width: 26px; height: 26px; border-radius: 50%; background: var(--accent);
-            color: #fff; display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: 600;
-        }
-        .logout-link { color: var(--accent); cursor: pointer; text-decoration: underline; margin-left: 4px; }
-
-        .screen {
-            display: none; flex-direction: column; flex: 1;
-            padding: 16px 16px 12px; overflow-y: auto; overflow-x: hidden;
-            scroll-behavior: smooth; opacity: 0; transform: translateY(8px);
-            transition: opacity 0.25s ease, transform 0.25s ease; min-height: 0;
-        }
-        .screen.active { display: flex; opacity: 1; transform: translateY(0); }
-        .screen::-webkit-scrollbar { width: 3px; }
-        .screen::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 10px; }
-
-        h2 { font-weight: 500; font-size: 17px; margin-bottom: 10px; color: #5e4e3e; letter-spacing: -0.2px; flex-shrink: 0; }
-
-        .auth-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            flex: 1; padding: 24px 20px; gap: 20px; text-align: center;
-        }
-        .auth-icon {
-            width: 70px; height: 70px; border-radius: 50%;
-            background: linear-gradient(135deg, #b08968, #c9a07a);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 32px; color: #fff;
-        }
-        .auth-title { font-size: 20px; font-weight: 500; color: #5e4e3e; }
-        .auth-subtitle { font-size: 13px; color: var(--text2); margin-top: -8px; }
-        .telegram-btn {
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            width: 100%; max-width: 300px; padding: 16px;
-            background: var(--tg); color: #fff; border: none; border-radius: 16px;
-            font-size: 15px; font-weight: 600; cursor: pointer;
-            font-family: inherit; transition: all var(--transition);
-        }
-        .telegram-btn:active { transform: scale(0.97); }
-        .telegram-btn svg { width: 22px; height: 22px; fill: #fff; }
+        .tg-btn svg { width: 22px; height: 22px; fill: #fff; }
+        .step { display: none; }
+        .step.active { display: block; }
         .code-input {
-            width: 100%; max-width: 300px; padding: 14px; border: 2px solid var(--border);
-            border-radius: 14px; font-size: 20px; text-align: center;
-            letter-spacing: 6px; font-weight: 600; color: var(--text);
-            outline: none; font-family: inherit;
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0d5c8;
+            border-radius: 12px;
+            font-size: 22px;
+            text-align: center;
+            letter-spacing: 6px;
+            margin-bottom: 12px;
+            outline: none;
         }
-        .code-input:focus { border-color: var(--accent); }
-        .auth-btn {
-            width: 100%; max-width: 300px; padding: 14px; background: var(--accent);
-            color: #fff; border: none; border-radius: 14px; font-size: 14px;
-            font-weight: 600; cursor: pointer; font-family: inherit;
+        .code-input:focus { border-color: #b08968; }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #b08968;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
         }
-        .auth-btn:active { transform: scale(0.97); }
-        .auth-back-link { color: var(--accent); cursor: pointer; font-size: 13px; text-decoration: underline; }
-        .auth-error { color: #c4956a; font-size: 12px; min-height: 18px; }
-        .auth-info {
-            background: var(--surface2); padding: 10px 14px; border-radius: 12px;
-            font-size: 11px; color: var(--text2); max-width: 300px;
-        }
-
-        .services-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; flex-shrink: 0; }
-        .service-card {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 16px; background: var(--surface2); border-radius: 16px;
-            border: 1.5px solid transparent; cursor: pointer; transition: all var(--transition);
-        }
-        .service-card:active { transform: scale(0.98); }
-        .service-card.selected { background: #f0e6da; border-color: var(--accent); box-shadow: 0 4px 16px rgba(176,137,104,0.15); }
-        .service-name { font-weight: 500; font-size: 14px; color: var(--text); }
-        .service-duration { font-size: 11px; color: var(--text2); margin-top: 2px; }
-        .radio-circle {
-            width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d4c4b0;
+        .back { color: #b08968; cursor: pointer; font-size: 13px; margin-top: 10px; display: block; }
+        .msg { font-size: 13px; color: #8b7b6b; margin: 10px 0; }
+        .err { color: #c44; font-size: 12px; }
+        .avatar {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #b08968; color: #fff;
             display: flex; align-items: center; justify-content: center;
-            transition: all var(--transition); flex-shrink: 0;
+            font-size: 24px; margin: 0 auto 15px;
         }
-        .service-card.selected .radio-circle { border-color: var(--accent); background: var(--accent); }
-        .radio-circle::after {
-            content: ''; width: 7px; height: 7px; border-radius: 50%;
-            background: white; transform: scale(0); transition: transform var(--transition);
-        }
-        .service-card.selected .radio-circle::after { transform: scale(1); }
-
-        .section-anchor { scroll-margin-top: 20px; }
-        .date-scroll {
-            display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 6px;
-            margin-bottom: 16px; scroll-snap-type: x proximity;
-            -webkit-overflow-scrolling: touch; flex-shrink: 0;
-        }
-        .date-scroll::-webkit-scrollbar { height: 0; }
-        .date-btn {
-            flex: 0 0 auto; min-width: 56px; padding: 12px 8px; border-radius: 16px;
-            background: var(--surface2); border: 1.5px solid transparent;
-            cursor: pointer; text-align: center; transition: all var(--transition);
-            scroll-snap-align: start;
-        }
-        .date-btn:active { transform: scale(0.96); }
-        .date-btn .day { font-size: 20px; font-weight: 500; color: var(--text); line-height: 1; }
-        .date-btn .month { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
-        .date-btn.selected { background: var(--accent); border-color: var(--accent); box-shadow: 0 6px 16px rgba(176,137,104,0.3); transform: translateY(-1px); }
-        .date-btn.selected .day, .date-btn.selected .month { color: #fff; }
-        .date-btn.blocked { opacity: 0.4; pointer-events: none; background: #f0e8de; text-decoration: line-through; }
-        .date-btn.past { opacity: 0.35; pointer-events: none; background: #f0e8de; }
-
-        .time-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-            margin-bottom: 16px; flex-shrink: 0;
-        }
-        .time-slot {
-            padding: 12px 6px; text-align: center; background: var(--surface2);
-            border-radius: 14px; font-size: 13px; font-weight: 500; color: var(--text);
-            cursor: pointer; transition: all var(--transition); border: 1.5px solid transparent;
-        }
-        .time-slot:active { transform: scale(0.94); }
-        .time-slot.selected { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 4px 14px rgba(176,137,104,0.3); }
-        .time-slot.blocked { opacity: 0.35; pointer-events: none; background: #f0e8de; text-decoration: line-through; }
-        .time-slot.booked {
-            opacity: 0.5; pointer-events: none; background: #e8ddd0;
-            border-color: #d4c4b0; color: #b0a090; font-size: 11px;
-        }
-        .time-slot.booked::after { content: 'занято'; display: block; font-size: 9px; font-weight: 400; margin-top: 2px; }
-        .time-slot.past-time { opacity: 0.3; pointer-events: none; background: #f0e8de; color: #c4b8a8; }
-
-        .selected-summary {
-            font-size: 12px; color: var(--accent); text-align: center;
-            margin-bottom: 8px; font-weight: 500; min-height: 18px;
-            flex-shrink: 0; line-height: 1.4;
-        }
-
-        .btn-wrap { flex-shrink: 0; margin-top: auto; padding-top: 4px; scroll-margin-top: 20px; }
-        .primary-btn {
-            width: 100%; padding: 16px; background: linear-gradient(135deg, #b08968, #c9a07a);
-            border: none; border-radius: 18px; color: #fff; font-size: 15px;
-            font-weight: 600; letter-spacing: 1px; cursor: pointer;
-            transition: all var(--transition); box-shadow: 0 6px 20px rgba(176,137,104,0.25);
-            position: relative; overflow: hidden;
-        }
-        .primary-btn::after {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15)); pointer-events: none;
-        }
-        .primary-btn:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(176,137,104,0.2); }
-
-        .success-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 99999; animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .success-modal {
-            background: #fff; border-radius: 32px; padding: 36px 28px;
-            text-align: center; max-width: 340px; width: 90%;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
-            animation: popIn 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes popIn { from { transform: scale(0.5) translateY(30px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-        .success-icon-circle {
-            width: 90px; height: 90px; margin: 0 auto 20px;
-            border-radius: 50%; background: #e8f0df;
-            display: flex; align-items: center; justify-content: center;
-            animation: iconBounce 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both;
-        }
-        @keyframes iconBounce { 0% { transform: scale(0); } 55% { transform: scale(1.25); } 100% { transform: scale(1); } }
-        .success-icon-circle svg polyline { stroke-dasharray: 40; stroke-dashoffset: 40; animation: drawCheck 0.4s ease 0.5s forwards; }
-        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
-        .success-big-text { font-size: 26px; font-weight: 600; color: #5e4e3e; margin-bottom: 4px; animation: fadeUpText 0.5s ease 0.35s both; }
-        @keyframes fadeUpText { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .success-sub-text { font-size: 14px; color: var(--accent); font-weight: 500; margin-bottom: 20px; animation: fadeUpText 0.5s ease 0.45s both; }
-        .success-info-box { background: #faf7f3; border-radius: 18px; padding: 14px 18px; margin-bottom: 20px; text-align: left; animation: fadeUpText 0.5s ease 0.55s both; }
-        .success-info-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; }
-        .success-info-row .l { color: var(--text2); } .success-info-row .v { color: var(--text); font-weight: 500; }
-        .success-ok-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 18px; color: #fff; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: all var(--transition); animation: fadeUpText 0.5s ease 0.65s both; }
-        .success-ok-btn:active { transform: scale(0.97); }
-
-        .cancel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 99999; animation: fadeIn 0.3s ease; }
-        .cancel-modal { background: #fff; border-radius: 32px; padding: 36px 28px; text-align: center; max-width: 340px; width: 90%; box-shadow: 0 24px 60px rgba(0,0,0,0.25); animation: popIn 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .cancel-icon-circle { width: 90px; height: 90px; margin: 0 auto 20px; border-radius: 50%; background: #fbe9e0; display: flex; align-items: center; justify-content: center; animation: iconBounce 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both; }
-        .cancel-big-text { font-size: 22px; font-weight: 600; color: #5e4e3e; margin-bottom: 4px; animation: fadeUpText 0.5s ease 0.35s both; }
-        .cancel-sub-text { font-size: 13px; color: var(--text2); margin-bottom: 20px; animation: fadeUpText 0.5s ease 0.45s both; }
-        .cancel-btns { display: flex; gap: 10px; animation: fadeUpText 0.5s ease 0.55s both; }
-        .cancel-btn-no, .cancel-btn-yes { flex: 1; padding: 14px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all var(--transition); font-family: inherit; }
-        .cancel-btn-no { background: var(--surface2); color: var(--text); } .cancel-btn-yes { background: var(--danger); color: #fff; }
-
-        .card { background: var(--surface2); border-radius: 18px; padding: 14px 16px; margin-bottom: 8px; border: 1px solid var(--border); animation: fadeSlide 0.35s ease; }
-        @keyframes fadeSlide { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .card-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-        .card-service { font-size: 11px; color: var(--accent); font-weight: 500; }
-        .card-status { font-size: 10px; padding: 4px 8px; border-radius: 20px; font-weight: 500; }
-        .card-status.upcoming { background: #e8f0df; color: #7a9a5c; } .card-status.past { background: #f0e8de; color: #b09070; }
-        .cancel-btn { background: none; border: 1px solid #d4c4b0; color: #9b7b62; padding: 7px 14px; border-radius: 30px; font-size: 11px; cursor: pointer; transition: all var(--transition); font-weight: 500; }
-        .cancel-btn:active { transform: scale(0.94); background: #f0e3d5; }
-
-        .review-card { background: var(--surface2); border-radius: 18px; padding: 14px 16px; margin-bottom: 8px; border: 1px solid var(--border); animation: fadeSlide 0.35s ease; position: relative; }
-        .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-        .review-author { font-weight: 600; font-size: 14px; color: var(--accent); } .review-date { font-size: 10px; color: var(--text2); }
-        .review-text { color: var(--text); line-height: 1.5; font-size: 13px; }
-        .stars { color: #d4a76a; letter-spacing: 2px; }
-        .stars-interactive { display: flex; gap: 4px; cursor: pointer; font-size: 28px; color: #e0d0bb; transition: color 0.2s; }
-        .stars-interactive .star.active { color: #d4a76a; }
-        .delete-review-btn { position: absolute; top: 10px; right: 12px; background: none; border: none; color: #c4b0a0; cursor: pointer; font-size: 20px; padding: 4px 8px; border-radius: 50%; transition: all var(--transition); }
-
-        .review-form { background: var(--surface2); border-radius: 18px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); transition: all var(--transition); }
-        .review-form.disabled { opacity: 0.5; pointer-events: none; }
-        .review-form input, .review-form textarea { width: 100%; background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; font-size: 13px; color: var(--text); outline: none; font-family: inherit; margin-bottom: 10px; resize: vertical; transition: border-color 0.2s; }
-        .review-form input:focus, .review-form textarea:focus { border-color: var(--accent); }
-        .review-form textarea { min-height: 80px; }
-        .submit-review-btn { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 14px; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: all var(--transition); }
-        .submit-review-btn:active { transform: scale(0.97); }
-        .review-limit-msg { font-size: 11px; color: var(--text2); text-align: center; margin-top: 8px; font-style: italic; }
-
-        .bottom-nav { display: flex; background: var(--surface); border-top: 1px solid var(--border); padding: 6px 12px; padding-bottom: max(6px, env(safe-area-inset-bottom)); flex-shrink: 0; gap: 4px; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; font-size: 11px; font-weight: 500; letter-spacing: 0.3px; color: var(--text2); cursor: pointer; transition: all var(--transition); border: none; background: transparent; border-radius: 14px; gap: 5px; }
-        .nav-item.active { color: var(--accent); font-weight: 600; background: rgba(176,137,104,0.06); }
-        .nav-item svg { transition: all var(--transition); } .nav-item.active svg { transform: translateY(-1px); }
-        .nav-item.active svg path, .nav-item.active svg circle, .nav-item.active svg rect, .nav-item.active svg line { stroke: var(--accent); }
-        .nav-item:active { transform: scale(0.94); }
-
-        .admin-toggle { display: block; margin: 10px auto 0; font-size: 11px; color: var(--text2); background: none; border: none; cursor: pointer; letter-spacing: 1px; padding: 6px 14px; border-radius: 16px; transition: all var(--transition); flex-shrink: 0; }
-        .admin-panel { margin-top: 12px; background: #f9f5ef; border-radius: 20px; padding: 14px; border: 1px solid var(--border); animation: fadeSlide 0.35s ease; flex-shrink: 0; }
-        .admin-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
-        select, input { background: #fff; border: 1px solid var(--border); border-radius: 30px; padding: 8px 12px; font-size: 12px; color: var(--text); outline: none; font-family: inherit; }
-        .mini-btn { padding: 8px 14px; border-radius: 30px; font-size: 11px; font-weight: 500; cursor: pointer; border: none; transition: all var(--transition); background: #e8ddcf; color: #5e4e3e; }
-        .mini-btn.danger { background: var(--danger); color: #fff; } .mini-btn:active { transform: scale(0.94); }
-        .tag { display: inline-block; background: #ede3d6; padding: 3px 10px; border-radius: 16px; font-size: 10px; margin: 2px; color: #5e4e3e; }
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text2); }
-        .empty-state svg { display: block; margin: 0 auto 12px; opacity: 0.5; }
     </style>
 </head>
 <body>
-<div class="app">
-    <div class="header">
-        <div class="logo">massage <span>studio</span></div>
-        <div class="user-bar" id="userBar"></div>
-    </div>
+<div class="card">
+    <h1>massage <span>studio</span></h1>
 
-    <!-- ЭКРАН АВТОРИЗАЦИИ -->
-    <div id="authScreen" class="screen active">
-        <div class="auth-container">
-            <div class="auth-icon">🔐</div>
-            <div class="auth-title">Войдите в аккаунт</div>
-            <div class="auth-subtitle">через Telegram</div>
-
-            <button class="telegram-btn" id="tgLoginBtn" onclick="startTelegramLogin()">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.2c-.07-.06-.17-.04-.24-.02-.1.02-1.71 1.09-4.83 3.19-.46.32-.87.47-1.24.46-.41-.01-1.19-.23-1.77-.42-.71-.23-1.28-.35-1.23-.74.03-.2.3-.41.83-.62 3.23-1.41 5.38-2.34 6.45-2.78 3.07-1.28 3.71-1.5 4.13-1.51.09 0 .3.02.43.13.11.09.14.22.15.31.01.09.02.29.01.44z"/></svg>
-                Войти через Telegram
-            </button>
-
-            <div class="auth-info" id="authInfo" style="display:none;">
-                Введите код из бота:
-            </div>
-
-            <input type="text" class="code-input" id="codeInput" maxlength="6" placeholder="000000" style="display:none;" />
-            <button class="auth-btn" id="verifyBtn" onclick="verifyCode()" style="display:none;">Подтвердить</button>
-            <div class="auth-error" id="authError"></div>
-            <span class="auth-back-link" id="backLink" onclick="resetAuth()" style="display:none;">← Назад</span>
-        </div>
-    </div>
-
-    <!-- Экран записи -->
-    <div id="bookingScreen" class="screen">
-        <h2>Вид массажа</h2>
-        <div id="servicesContainer" class="services-list"></div>
-        <h2 class="section-anchor" id="dateSection">Дата</h2>
-        <div id="dateContainer" class="date-scroll"></div>
-        <h2 class="section-anchor" id="timeSection">Время</h2>
-        <div id="timeContainer" class="time-grid"></div>
-        <div id="selectedSummary" class="selected-summary"></div>
-        <div class="btn-wrap" id="confirmBtnWrap"><button id="confirmBtn" class="primary-btn">Записаться</button></div>
-        <button class="admin-toggle" id="toggleAdmin">🔑 Админ</button>
-        <div id="adminPanel" style="display:none;"></div>
-    </div>
-
-    <div id="appointmentsScreen" class="screen">
-        <h2>Мои записи</h2>
-        <div id="appointmentsList"></div>
-    </div>
-
-    <div id="reviewsScreen" class="screen">
-        <h2>Отзывы</h2>
-        <div class="review-form" id="reviewForm">
-            <div style="font-weight:500;font-size:14px;margin-bottom:8px;color:#5e4e3e;">Оставить отзыв</div>
-            <div class="stars-interactive" id="starRating">
-                <span class="star" data-star="1">★</span><span class="star" data-star="2">★</span>
-                <span class="star" data-star="3">★</span><span class="star" data-star="4">★</span>
-                <span class="star" data-star="5">★</span>
-            </div>
-            <input type="text" id="reviewAuthor" placeholder="Ваше имя" maxlength="30" />
-            <textarea id="reviewText" placeholder="Поделитесь впечатлениями..." maxlength="500"></textarea>
-            <button class="submit-review-btn" id="submitReview">Отправить отзыв</button>
-            <div class="review-limit-msg" id="reviewLimitMsg"></div>
-        </div>
-        <div id="reviewsList"></div>
-    </div>
-
-    <div class="bottom-nav" id="bottomNav" style="display:none;">
-        <button class="nav-item active" data-screen="booking">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b7a797" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="3"/><line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                <circle cx="12" cy="16" r="1.5" fill="#b7a797" stroke="none"/>
-                <line x1="12" y1="13" x2="12" y2="15"/><line x1="10.5" y1="16" x2="13.5" y2="16"/>
-            </svg>Запись
+    <div class="step active" id="step1">
+        <p class="msg">Войдите через Telegram</p>
+        <button class="tg-btn" onclick="startLogin()">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.2c-.07-.06-.17-.04-.24-.02-.1.02-1.71 1.09-4.83 3.19-.46.32-.87.47-1.24.46-.41-.01-1.19-.23-1.77-.42-.71-.23-1.28-.35-1.23-.74.03-.2.3-.41.83-.62 3.23-1.41 5.38-2.34 6.45-2.78 3.07-1.28 3.71-1.5 4.13-1.51.09 0 .3.02.43.13.11.09.14.22.15.31.01.09.02.29.01.44z"/></svg>
+            Получить код в Telegram
         </button>
-        <button class="nav-item" data-screen="appointments">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b7a797" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/>
-                <line x1="8" y1="13" x2="14" y2="13"/><circle cx="18" cy="17" r="3" fill="#b7a797" stroke="none"/>
-                <polyline points="16.5,17 17.5,18 19.5,15.5" stroke="#fff" stroke-width="1.5" fill="none"/>
-            </svg>Мои записи
-        </button>
-        <button class="nav-item" data-screen="reviews">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b7a797" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                <polygon points="10.5,8.5 11.5,10.5 13.5,10.5 12,12 12.5,14 10.5,12.8 8.5,14 9,12 7.5,10.5 9.5,10.5" fill="#b7a797" stroke="none"/>
-            </svg>Отзывы
-        </button>
+    </div>
+
+    <div class="step" id="step2">
+        <p class="msg">Введите код из бота:</p>
+        <input type="text" class="code-input" id="codeInput" maxlength="6" placeholder="000000">
+        <button class="btn" onclick="verifyCode()">Войти</button>
+        <span class="back" onclick="back()">← Назад</span>
+        <div class="err" id="err"></div>
+    </div>
+
+    <div class="step" id="step3">
+        <div class="avatar" id="ava"></div>
+        <p class="msg" id="okName"></p>
+        <button class="btn" onclick="logout()">Выйти</button>
     </div>
 </div>
 
 <script>
-(function() {
-    const BOT_USERNAME = 'MassageLobnya_bot';
     const WORKER_URL = 'https://massage-bot.bebraila5990d.workers.dev';
+    const BOT = 'MassageLobnya_bot';
+    let myCode = null, timer = null;
 
-    let currentUser = null;
-    let pendingCode = null;
-    let pollingInterval = null;
+    const saved = localStorage.getItem('mu');
+    if (saved) { const u = JSON.parse(saved); showOk(u); }
 
-    // ============ АВТОРИЗАЦИЯ ============
-    window.startTelegramLogin = function() {
-        pendingCode = String(Math.floor(100000 + Math.random() * 900000));
-        localStorage.setItem('tg_pending_code', pendingCode);
-        localStorage.setItem('tg_pending_time', String(Date.now()));
-
-        document.getElementById('authInfo').style.display = 'block';
-        document.getElementById('codeInput').style.display = 'block';
-        document.getElementById('verifyBtn').style.display = 'block';
-        document.getElementById('backLink').style.display = 'block';
-        document.getElementById('tgLoginBtn').style.display = 'none';
-        document.getElementById('authError').textContent = '';
-
-        window.open(`https://t.me/${BOT_USERNAME}?start=login_${pendingCode}`, '_blank');
-        startPolling();
-    };
-
-    function startPolling() {
-        let attempts = 0;
-        pollingInterval = setInterval(async () => {
-            attempts++;
-            if (attempts > 60) { clearInterval(pollingInterval); return; }
-            try {
-                const res = await fetch(`${WORKER_URL}/check-login?code=${pendingCode}`);
-                const data = await res.json();
-                if (data.success) {
-                    clearInterval(pollingInterval);
-                    loginUser(data.user);
-                }
-            } catch (e) {}
-        }, 2000);
-    }
-
-    window.verifyCode = async function() {
-        const code = document.getElementById('codeInput').value.trim();
-        if (!code || code.length !== 6) {
-            document.getElementById('authError').textContent = 'Введите 6 цифр';
-            return;
-        }
-        try {
-            const res = await fetch(`${WORKER_URL}/check-login?code=${code}`);
-            const data = await res.json();
-            if (data.success) {
-                clearInterval(pollingInterval);
-                loginUser(data.user);
-            } else {
-                document.getElementById('authError').textContent = 'Неверный код или время истекло';
-            }
-        } catch (e) {
-            document.getElementById('authError').textContent = 'Ошибка соединения';
-        }
-    };
-
-    window.resetAuth = function() {
-        clearInterval(pollingInterval);
-        pendingCode = null;
-        localStorage.removeItem('tg_pending_code');
-        document.getElementById('authInfo').style.display = 'none';
-        document.getElementById('codeInput').style.display = 'none';
-        document.getElementById('verifyBtn').style.display = 'none';
-        document.getElementById('backLink').style.display = 'none';
-        document.getElementById('tgLoginBtn').style.display = 'flex';
-        document.getElementById('authError').textContent = '';
+    function startLogin() {
+        myCode = String(Math.floor(100000 + Math.random() * 900000));
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        document.getElementById('err').textContent = '';
         document.getElementById('codeInput').value = '';
-    };
-
-    function loginUser(user) {
-        currentUser = user;
-        localStorage.setItem('massage_user', JSON.stringify(user));
-        document.getElementById('userBar').innerHTML = `
-            <div class="user-avatar">${user.avatar}</div>
-            <span>${user.name}</span>
-            <span class="logout-link" onclick="logout()">выйти</span>`;
-        document.getElementById('authScreen').classList.remove('active');
-        document.getElementById('bottomNav').style.display = 'flex';
-        switchScreen('booking');
-        loadData();
+        document.getElementById('codeInput').focus();
+        window.open('https://t.me/' + BOT + '?start=' + myCode, '_blank');
+        let n = 0;
+        timer = setInterval(async () => {
+            n++;
+            if (n > 120) { clearInterval(timer); return; }
+            try {
+                const r = await fetch(WORKER_URL + '/check?code=' + myCode);
+                const d = await r.json();
+                if (d.ok) { clearInterval(timer); saveUser(d.user); }
+            } catch(e) {}
+        }, 1500);
     }
 
-    window.logout = function() {
-        currentUser = null;
-        localStorage.removeItem('massage_user');
-        document.getElementById('userBar').innerHTML = '';
-        document.getElementById('bottomNav').style.display = 'none';
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('authScreen').classList.add('active');
-        resetAuth();
-    };
-
-    const savedUser = localStorage.getItem('massage_user');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        document.getElementById('userBar').innerHTML = `
-            <div class="user-avatar">${currentUser.avatar}</div>
-            <span>${currentUser.name}</span>
-            <span class="logout-link" onclick="logout()">выйти</span>`;
-        document.getElementById('authScreen').classList.remove('active');
-        document.getElementById('bottomNav').style.display = 'flex';
-        switchScreen('booking');
-        loadData();
+    async function verifyCode() {
+        const c = document.getElementById('codeInput').value.trim();
+        if (!c || c.length !== 6) { document.getElementById('err').textContent = 'Введите 6 цифр'; return; }
+        try {
+            const r = await fetch(WORKER_URL + '/check?code=' + c);
+            const d = await r.json();
+            if (d.ok) { clearInterval(timer); saveUser(d.user); }
+            else document.getElementById('err').textContent = 'Неверный код';
+        } catch(e) { document.getElementById('err').textContent = 'Ошибка'; }
     }
 
-    // ============ ОСНОВНОЙ КОД САЙТА ============
-    const SERVICES = [
-        { id: 'classic60', name: 'Классический массаж', duration: '60 мин', durationMin: 60 },
-        { id: 'classic90', name: 'Классический массаж', duration: '90 мин', durationMin: 90 },
-        { id: 'lymph90', name: 'Лимфодренажный массаж', duration: '90 мин', durationMin: 90 },
-        { id: 'face60', name: 'Массаж лица', duration: '60 мин', durationMin: 60 },
-        { id: 'back30', name: 'Массаж спины', duration: '30 мин', durationMin: 30 },
-    ];
-
-    function generateAllSlots() {
-        const slots = [];
-        for (let h = 9; h <= 21; h++) {
-            for (let m = 0; m < 60; m += 15) {
-                if (h === 21 && m > 0) break;
-                slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-            }
-        }
-        return slots;
+    function saveUser(u) { localStorage.setItem('mu', JSON.stringify(u)); showOk(u); }
+    function showOk(u) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step3').classList.add('active');
+        document.getElementById('ava').textContent = u.avatar;
+        document.getElementById('okName').textContent = u.name;
     }
-    const ALL_SLOTS = generateAllSlots();
-    const WORK_END_MIN = 21 * 60;
-
-    let appointments = JSON.parse(localStorage.getItem('massage_appts_' + (currentUser?.id || 'guest')) || '[]');
-    let blockedSlots = JSON.parse(localStorage.getItem('massage_blocked') || '[]');
-    let blockedDays = JSON.parse(localStorage.getItem('massage_days') || '[]');
-    let reviews = JSON.parse(localStorage.getItem('massage_reviews') || '[]');
-
-    function getDates() {
-        const d = []; const now = new Date();
-        let startDay = (now.getHours() * 60 + now.getMinutes()) >= WORK_END_MIN ? 1 : 0;
-        for (let i = startDay; i < startDay + 7; i++) {
-            const n = new Date(now); n.setDate(now.getDate() + i); d.push(n);
-        }
-        return d;
-    }
-    function fmt(date) { return date.toISOString().split('T')[0]; }
-    function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
-    function formatDateDMY(dateStr) { const [y, m, d] = dateStr.split('-'); return `${d}.${m}.${y}`; }
-
-    function isSlotBlockedByAppointment(date, time, durationMin) {
-        const startMin = timeToMinutes(time);
-        const endMin = startMin + durationMin + 15;
-        return appointments.some(a => {
-            if (a.date !== date) return false;
-            const aStart = timeToMinutes(a.time);
-            return startMin < (aStart + a.service.durationMin + 15) && endMin > aStart;
-        });
-    }
-    function isAppointmentPast(appt) {
-        const [h, m] = appt.time.split(':').map(Number);
-        const apptDate = new Date(appt.date);
-        apptDate.setHours(h, m, 0, 0);
-        return new Date() > new Date(apptDate.getTime() + appt.service.durationMin * 60000);
-    }
-    function hasPastAppointment() { return appointments.some(a => isAppointmentPast(a)); }
-    function isTimeInPast(dateStr, timeStr) {
-        if (dateStr !== fmt(new Date())) return false;
-        return timeToMinutes(timeStr) <= new Date().getHours() * 60 + new Date().getMinutes();
-    }
-
-    let selectedService = null, selectedDate = null, selectedTime = null, reviewRating = 0;
-
-    function switchScreen(id) {
-        document.querySelectorAll('#bookingScreen, #appointmentsScreen, #reviewsScreen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id + 'Screen').classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
-        if (id === 'appointments') renderAppointments();
-        if (id === 'reviews') { renderReviews(); updateReviewFormState(); }
-        if (id === 'booking') {
-            selectedDate = null; selectedTime = null;
-            renderDates(); renderSlots(); updateSummary();
-        }
-    }
-
-    document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => switchScreen(b.dataset.screen)));
-
-    function loadData() {
-        appointments = JSON.parse(localStorage.getItem('massage_appts_' + (currentUser?.id || 'guest')) || '[]');
-        reviews = JSON.parse(localStorage.getItem('massage_reviews') || '[]');
-        blockedSlots = JSON.parse(localStorage.getItem('massage_blocked') || '[]');
-        blockedDays = JSON.parse(localStorage.getItem('massage_days') || '[]');
-        renderServices(); renderDates(); renderSlots(); renderAppointments(); renderReviews(); updateSummary();
-    }
-
-    function renderServices() {
-        const c = document.getElementById('servicesContainer');
-        c.innerHTML = SERVICES.map(s => `<div class="service-card ${selectedService?.id===s.id?'selected':''}" data-id="${s.id}"><div><div class="service-name">${s.name}</div><div class="service-duration">${s.duration}</div></div><div class="radio-circle"></div></div>`).join('');
-        c.querySelectorAll('.service-card').forEach(card => card.addEventListener('click', () => {
-            selectedService = SERVICES.find(s => s.id === card.dataset.id);
-            selectedTime = null; renderServices(); renderSlots(); updateSummary();
-        }));
-    }
-
-    function renderDates() {
-        const dates = getDates(); const blockedSet = new Set(blockedDays);
-        const c = document.getElementById('dateContainer');
-        c.innerHTML = dates.map(d => {
-            const ds = fmt(d);
-            return `<div class="date-btn ${ds===selectedDate?'selected':''} ${blockedSet.has(ds)?'blocked':''} ${ds<fmt(new Date())?'past':''}" data-date="${ds}"><div class="day">${d.getDate()}</div><div class="month">${d.toLocaleDateString('ru',{month:'short'})}</div></div>`;
-        }).join('');
-        c.querySelectorAll('.date-btn:not(.blocked):not(.past)').forEach(b => b.addEventListener('click', () => {
-            selectedDate = b.dataset.date; selectedTime = null; renderDates(); renderSlots(); updateSummary();
-        }));
-    }
-
-    function renderSlots() {
-        const c = document.getElementById('timeContainer');
-        if (!selectedDate) { c.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text2);padding:16px;">Сначала выберите дату</div>'; return; }
-        if (!selectedService) { c.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text2);padding:16px;">Сначала выберите вид массажа</div>'; return; }
-        const blockedSet = new Set(blockedSlots.filter(s => s.date === selectedDate).map(s => s.time));
-        const dm = selectedService.durationMin;
-        c.innerHTML = ALL_SLOTS.map(t => {
-            const ab = blockedSet.has(t); const ap = isSlotBlockedByAppointment(selectedDate, t, dm);
-            const oob = timeToMinutes(t) + dm > WORK_END_MIN; const past = isTimeInPast(selectedDate, t);
-            const blocked = ab || ap || oob || past;
-            let cls = 'time-slot'; if (t === selectedTime && !blocked) cls += ' selected';
-            if (ab || oob) cls += ' blocked'; if (past) cls += ' past-time';
-            if (ap && !ab && !past) cls += ' booked';
-            return `<div class="${cls}" data-time="${t}">${t}</div>`;
-        }).join('');
-        c.querySelectorAll('.time-slot:not(.blocked):not(.booked):not(.past-time)').forEach(s => s.addEventListener('click', () => {
-            selectedTime = s.dataset.time; renderSlots(); updateSummary();
-        }));
-    }
-
-    function updateSummary() {
-        const p = [];
-        if (selectedService) p.push(`${selectedService.name} · ${selectedService.duration}`);
-        if (selectedDate) p.push(formatDateDMY(selectedDate));
-        if (selectedTime) p.push(selectedTime);
-        document.getElementById('selectedSummary').textContent = p.join('  |  ');
-    }
-
-    function showModal({ icon, iconClass, title, details, buttons }) {
-        document.querySelectorAll('.success-overlay, .cancel-overlay').forEach(o => o.remove());
-        const overlay = document.createElement('div');
-        overlay.className = iconClass === 'success' ? 'success-overlay' : 'cancel-overlay';
-        overlay.innerHTML = `<div class="${iconClass === 'success' ? 'success-modal' : 'cancel-modal'}"><div class="${iconClass === 'success' ? 'success-icon-circle' : 'cancel-icon-circle'}">${icon}</div><div class="${iconClass === 'success' ? 'success-big-text' : 'cancel-big-text'}">${title}</div>${details.map(d => `<div class="${iconClass === 'success' ? 'success-sub-text' : 'cancel-sub-text'}">${d}</div>`).join('')}<div class="cancel-btns">${buttons.map(b => `<button class="${b.cls === 'danger' ? 'cancel-btn-yes' : 'cancel-btn-no'}" data-action="${b.action}">${b.text}</button>`).join('')}</div></div>`;
-        document.body.appendChild(overlay);
-        const close = () => { overlay.style.opacity = '0'; overlay.style.transition = 'opacity 0.2s'; setTimeout(() => overlay.remove(), 200); };
-        overlay.querySelectorAll('[data-action]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const action = btn.dataset.action;
-                if (action === 'close') close();
-                if (action === 'confirm') { const def = buttons.find(b => b.action === 'confirm'); if (def?.callback) { close(); setTimeout(def.callback, 250); } }
-            });
-        });
-        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-    }
-
-    document.getElementById('confirmBtn').addEventListener('click', () => {
-        if (!currentUser) return alert('Войдите в аккаунт');
-        if (!selectedService) return alert('Выберите вид массажа');
-        if (!selectedDate) return alert('Выберите дату');
-        if (!selectedTime) return alert('Выберите время');
-
-        appointments.push({ id: Date.now(), service: selectedService, date: selectedDate, time: selectedTime, userId: currentUser.id });
-        localStorage.setItem('massage_appts_' + currentUser.id, JSON.stringify(appointments));
-
-        showModal({
-            icon: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8faa7b" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>',
-            iconClass: 'success',
-            title: 'Вы записаны!',
-            details: [`${selectedService.name} · ${selectedService.duration}`, `${formatDateDMY(selectedDate)} в ${selectedTime}`],
-            buttons: [{ text: 'Отлично', action: 'close', cls: 'primary' }]
-        });
-
-        selectedTime = null; renderSlots(); updateSummary(); renderAppointments();
-    });
-
-    function renderAppointments() {
-        const c = document.getElementById('appointmentsList');
-        const myAppts = appointments.filter(a => a.userId === currentUser?.id);
-        if (!myAppts.length) { c.innerHTML = '<div class="empty-state">У вас пока нет записей</div>'; return; }
-        const sorted = [...myAppts].sort((a, b) => {
-            const aPast = isAppointmentPast(a), bPast = isAppointmentPast(b);
-            if (aPast && !bPast) return 1; if (!aPast && bPast) return -1;
-            return (a.date + a.time).localeCompare(b.date + b.time);
-        });
-        c.innerHTML = sorted.map(a => {
-            const isPast = isAppointmentPast(a);
-            return `<div class="card"><div class="card-row"><div><div class="card-service">${a.service.name} · ${a.service.duration}</div><div><strong>${formatDateDMY(a.date)}</strong> · ${a.time}</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="card-status ${isPast?'past':'upcoming'}">${isPast?'Завершён':'Ожидается'}</span>${!isPast?`<button class="cancel-btn" data-id="${a.id}">Отменить</button>`:''}</div></div></div>`;
-        }).join('');
-        c.querySelectorAll('.cancel-btn').forEach(b => b.addEventListener('click', () => {
-            showModal({
-                icon: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c4956a" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-                iconClass: 'danger',
-                title: 'Отменить запись?',
-                details: ['Вы уверены?'],
-                buttons: [
-                    { text: 'Нет', action: 'close', cls: 'secondary' },
-                    { text: 'Да', action: 'confirm', cls: 'danger', callback: () => {
-                        appointments = appointments.filter(a => a.id !== +b.dataset.id);
-                        localStorage.setItem('massage_appts_' + currentUser.id, JSON.stringify(appointments));
-                        renderAppointments(); updateReviewFormState();
-                    }}
-                ]
-            });
-        }));
-    }
-
-    function updateReviewFormState() {
-        const form = document.getElementById('reviewForm');
-        const hasPast = hasPastAppointment();
-        const hasReview = reviews.some(r => r.userId === currentUser?.id);
-        if (!hasPast && !hasReview) { form.classList.add('disabled'); document.getElementById('reviewLimitMsg').textContent = 'Посетите массаж, чтобы оставить отзыв'; }
-        else if (hasReview) { form.classList.add('disabled'); document.getElementById('reviewLimitMsg').textContent = 'Вы уже оставили отзыв'; }
-        else { form.classList.remove('disabled'); document.getElementById('reviewLimitMsg').textContent = ''; }
-    }
-
-    function renderReviews() {
-        const c = document.getElementById('reviewsList');
-        if (!reviews.length) { c.innerHTML = '<div class="empty-state">Отзывов пока нет</div>'; return; }
-        c.innerHTML = reviews.slice().reverse().map(r => `<div class="review-card">${r.userId===currentUser?.id?`<button class="delete-review-btn" data-id="${r.id}">×</button>`:''}<div class="review-header"><div class="review-author">${r.author}</div><div class="review-date">${r.date}</div></div><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><div class="review-text">${r.text}</div></div>`).join('');
-        c.querySelectorAll('.delete-review-btn').forEach(b => b.addEventListener('click', () => {
-            reviews = reviews.filter(r => r.id !== +b.dataset.id);
-            localStorage.setItem('massage_reviews', JSON.stringify(reviews));
-            renderReviews(); updateReviewFormState();
-        }));
-        updateReviewFormState();
-    }
-
-    const starRating = document.getElementById('starRating');
-    if (starRating) {
-        const stars = starRating.querySelectorAll('.star');
-        stars.forEach(s => {
-            s.addEventListener('click', () => { reviewRating = +s.dataset.star; stars.forEach((x, i) => x.classList.toggle('active', i < reviewRating)); });
-            s.addEventListener('mouseenter', () => { const v = +s.dataset.star; stars.forEach((x, i) => x.classList.toggle('active', i < v)); });
-        });
-        starRating.addEventListener('mouseleave', () => stars.forEach((x, i) => x.classList.toggle('active', i < reviewRating)));
-    }
-
-    document.getElementById('submitReview')?.addEventListener('click', () => {
-        if (!currentUser) return alert('Войдите в аккаунт');
-        if (reviews.some(r => r.userId === currentUser.id)) return alert('Вы уже оставили отзыв');
-        if (!hasPastAppointment()) return alert('Посетите массаж, чтобы оставить отзыв');
-        const author = document.getElementById('reviewAuthor').value.trim() || currentUser.name;
-        const text = document.getElementById('reviewText').value.trim();
-        if (!text) return alert('Напишите отзыв');
-        if (!reviewRating) return alert('Поставьте оценку');
-        reviews.push({ id: Date.now(), userId: currentUser.id, author, text, stars: reviewRating, date: new Date().toLocaleDateString('ru', { day:'numeric', month:'long', year:'numeric' }) });
-        localStorage.setItem('massage_reviews', JSON.stringify(reviews));
-        document.getElementById('reviewAuthor').value = '';
-        document.getElementById('reviewText').value = '';
-        reviewRating = 0;
-        stars.forEach(s => s.classList.remove('active'));
-        renderReviews();
-    });
-
-    document.getElementById('toggleAdmin').addEventListener('click', () => {
-        const panel = document.getElementById('adminPanel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        if (panel.style.display === 'block') {
-            const dates = getDates();
-            panel.innerHTML = `<div class="admin-panel"><div style="font-weight:500;margin-bottom:10px;">Управление</div><div class="admin-row"><select id="admDate">${dates.map(d=>`<option value="${fmt(d)}">${formatDateDMY(fmt(d))}</option>`).join('')}</select><select id="admTime">${ALL_SLOTS.map(t=>`<option value="${t}">${t}</option>`).join('')}</select><button class="mini-btn danger" id="blockSlot">Блок слота</button></div><div class="admin-row"><button class="mini-btn danger" id="blockDay">Блок дня</button><button class="mini-btn" id="unblockDay">Разблок</button></div></div>`;
-            document.getElementById('blockSlot').addEventListener('click', () => {
-                blockedSlots.push({ date: document.getElementById('admDate').value, time: document.getElementById('admTime').value });
-                localStorage.setItem('massage_blocked', JSON.stringify(blockedSlots));
-                renderSlots();
-            });
-            document.getElementById('blockDay').addEventListener('click', () => {
-                blockedDays.push(document.getElementById('admDate').value);
-                localStorage.setItem('massage_days', JSON.stringify(blockedDays));
-                renderDates(); renderSlots();
-            });
-            document.getElementById('unblockDay').addEventListener('click', () => {
-                blockedDays = blockedDays.filter(d => d !== document.getElementById('admDate').value);
-                localStorage.setItem('massage_days', JSON.stringify(blockedDays));
-                renderDates(); renderSlots();
-            });
-        }
-    });
-
-    loadData();
-})();
+    function back() { clearInterval(timer); document.getElementById('step2').classList.remove('active'); document.getElementById('step1').classList.add('active'); }
+    function logout() { localStorage.removeItem('mu'); document.getElementById('step3').classList.remove('active'); document.getElementById('step1').classList.add('active'); }
 </script>
 </body>
 </html>
