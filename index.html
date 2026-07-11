@@ -272,6 +272,7 @@
 (function() {
     const API = 'https://tgweb.bebraila5990d.workers.dev';
     const BOT = 'MassageLobnya_bot';
+    const BOT_TOKEN = '8510549958:AAH3uG3B7sNOPOYPlpmiB0hX4ZZ8Uh5zYK4';
 
     const SERVICES = [
         { id: 'classic60', name: 'Классический массаж', duration: '60 мин', durationMin: 60 },
@@ -287,7 +288,6 @@
     let currentUser=null,appointments=[],reviews=[],blockedSlots=[],blockedDays=[];
     let selService=null,selDate=null,selTime=null,reviewRating=0;
 
-    // ==================== ИНИЦИАЛИЗАЦИЯ (ИСПРАВЛЕННАЯ) ====================
     (function init(){
         const p=new URLSearchParams(window.location.search);
         if(p.get('user')){
@@ -297,8 +297,8 @@
                 currentUser=u;
                 localStorage.setItem('muser',JSON.stringify(u));
                 window.history.replaceState({},'',window.location.pathname);
-                loadData(); // СРАЗУ загружаем основной интерфейс
-                return;     // ВЫХОДИМ
+                loadData();
+                return;
             }catch(e){}
         }
         if(!currentUser){
@@ -462,6 +462,20 @@
         document.getElementById('sum').textContent=p.join(' | ');
     }
 
+    async function sendTelegramNotification(userId, message) {
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: userId,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            });
+        } catch(e) {}
+    }
+
     function showSuccess(svc,date,time){
         document.querySelectorAll('.success-overlay,.cancel-overlay').forEach(o=>o.remove());
         const ov=document.createElement('div');ov.className='success-overlay';
@@ -479,6 +493,20 @@
         appointments.push({id:Date.now(),service:selService,date:selDate,time:selTime});
         saveData();
         showSuccess(selService,selDate,selTime);
+        
+        // Отправляем уведомление в Telegram
+        if(currentUser && currentUser.id) {
+            sendTelegramNotification(currentUser.id, 
+                `✅ <b>Запись подтверждена!</b>\n\n` +
+                `💆 ${selService.name}\n` +
+                `📅 ${fDate(selDate)}\n` +
+                `⏰ ${selTime}\n` +
+                `🕐 Длительность: ${selService.duration}\n\n` +
+                `📍 г. Лобня, Катюшки 58\n` +
+                `📞 +7 968 513 2011`
+            );
+        }
+        
         selTime=null;renderSlots();updateSummary();renderAppointments();
     }
 
@@ -498,7 +526,14 @@
         document.body.appendChild(ov);
         const cl=()=>{ov.style.opacity='0';ov.style.transition='opacity 0.25s';setTimeout(()=>ov.remove(),250)};
         document.getElementById('noBtn').onclick=cl;
-        document.getElementById('yesBtn').onclick=()=>{appointments=appointments.filter(x=>x.id!==id);saveData();cl();setTimeout(()=>{renderAppointments();updateReviewForm()},300)};
+        document.getElementById('yesBtn').onclick=()=>{
+            appointments=appointments.filter(x=>x.id!==id);saveData();cl();
+            // Уведомление об отмене
+            if(currentUser && currentUser.id) {
+                sendTelegramNotification(currentUser.id, `❌ <b>Запись отменена</b>\n\n${a.service.name}\n${fDate(a.date)} в ${a.time}`);
+            }
+            setTimeout(()=>{renderAppointments();updateReviewForm()},300);
+        };
     }
 
     function submitReview(){
